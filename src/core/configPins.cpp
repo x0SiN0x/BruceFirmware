@@ -1,7 +1,20 @@
 #include "configPins.h"
 #include "esp_mac.h"
 #include "sd_functions.h"
+#include <driver/gpio.h>
 #include <globals.h>
+
+static bool usableCs(int pin) {
+    return pin == GPIO_NUM_NC || (pin >= 0 && pin < GPIO_NUM_MAX && GPIO_IS_VALID_OUTPUT_GPIO(pin));
+}
+
+// An input-only pin can never assert a chip select, so a saved one is worth dropping for the board
+// default - unless that is no better, which a few boards ship (t-display-ttgo defaults NRF24 to 38).
+static bool repairCs(BruceConfigPins::SPIPins &bus, const BruceConfigPins::SPIPins &def) {
+    if (usableCs(bus.cs) || !usableCs(def.cs) || bus.cs == def.cs) return false;
+    bus.cs = def.cs;
+    return true;
+}
 String getMacAddress() {
     uint8_t mac[6];
     esp_read_mac(mac, ESP_MAC_WIFI_STA);
@@ -132,6 +145,7 @@ void BruceConfigPins::fromJson(JsonObject obj) {
             CC1101_bus = def;
             count++;
         }
+        if (repairCs(CC1101_bus, def)) count++;
     } else {
         count++;
         log_e("Fail");
@@ -144,6 +158,7 @@ void BruceConfigPins::fromJson(JsonObject obj) {
             NRF24_bus = def;
             count++;
         }
+        if (repairCs(NRF24_bus, def)) count++;
     } else {
         count++;
         log_e("Fail");
@@ -173,7 +188,9 @@ void BruceConfigPins::fromJson(JsonObject obj) {
     }
 #if !defined(LITE_VERSION)
     if (!root["W5500_Pins"].isNull()) {
+        SPIPins def = W5500_bus;
         W5500_bus.fromJson(root["W5500_Pins"].as<JsonObject>());
+        if (repairCs(W5500_bus, def)) count++;
     } else {
         count++;
         log_e("Fail");
