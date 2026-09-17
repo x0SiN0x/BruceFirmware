@@ -100,9 +100,10 @@ void cc1101SetPaMode(CC1101PaMode mode) {
     const int rx = bruceConfigPins.cc1101_pa.rx;
     if (tx < 0 || rx < 0) return;
 
-    // Latch low before enabling the drivers, otherwise a retained level keys a path for a cycle
-    digitalWrite(tx, LOW);
-    digitalWrite(rx, LOW);
+    // Latch low before enabling the drivers, otherwise a retained level keys a path for a cycle.
+    // digitalWrite would be dropped here: it only writes once the pin is registered as a GPIO.
+    gpio_set_level((gpio_num_t)tx, LOW);
+    gpio_set_level((gpio_num_t)rx, LOW);
     pinMode(tx, OUTPUT);
     pinMode(rx, OUTPUT);
     if (mode == CC1101_PA_IDLE) return;
