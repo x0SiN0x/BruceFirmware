@@ -54,6 +54,14 @@
 #ifndef SYS_I2C_SCL         // Pin to be used in I2C communications
   #define SYS_I2C_SCL -1
 #endif
+#ifndef RF_TX_DEFAULT       // Default one-pin RF TX, boards with a dedicated pin override it
+  #define RF_TX_DEFAULT GROVE_SDA
+#endif
+
+#ifndef RF_RX_DEFAULT       // Default one-pin RF RX
+  #define RF_RX_DEFAULT GROVE_SCL
+#endif
+
 #ifndef RXLED               // Default RX Infrared LED
   #define RXLED GROVE_SCL
 #endif

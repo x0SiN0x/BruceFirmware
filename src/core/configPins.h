@@ -227,8 +227,8 @@ public:
     int irRx = RXLED;
 
     // RF
-    int rfTx = GROVE_SDA;
-    int rfRx = GROVE_SCL;
+    int rfTx = RF_TX_DEFAULT;
+    int rfRx = RF_RX_DEFAULT;
     int rfModule = M5_RF_MODULE;
     float rfFreq = 433.92;
     int rfFxdFreq = 1;

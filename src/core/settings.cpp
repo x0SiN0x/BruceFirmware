@@ -1121,7 +1121,7 @@ void setIrTxRepeats() {
 int gsetIrRxPin(bool set) {
     int result = bruceConfigPins.irRx;
 
-    if (result > 45) bruceConfigPins.setIrRxPin(GROVE_SCL);
+    if (result > 45) bruceConfigPins.setIrRxPin(RXLED);
     if (set) {
         options.clear();
         std::vector<std::pair<const char *, int>> pins;
@@ -1157,7 +1157,7 @@ int gsetIrRxPin(bool set) {
 int gsetRfTxPin(bool set) {
     int result = bruceConfigPins.rfTx;
 
-    if (result > 45) bruceConfigPins.setRfTxPin(GROVE_SDA);
+    if (result > 45) bruceConfigPins.setRfTxPin(RF_TX_DEFAULT);
     if (set) {
         options.clear();
         std::vector<std::pair<const char *, int>> pins;
@@ -1194,7 +1194,7 @@ int gsetRfTxPin(bool set) {
 int gsetRfRxPin(bool set) {
     int result = bruceConfigPins.rfRx;
 
-    if (result > 36) bruceConfigPins.setRfRxPin(GROVE_SCL);
+    if (result > 36) bruceConfigPins.setRfRxPin(RF_RX_DEFAULT);
     if (set) {
         options.clear();
         std::vector<std::pair<const char *, int>> pins;
