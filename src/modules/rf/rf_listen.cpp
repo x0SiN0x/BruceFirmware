@@ -79,7 +79,7 @@ void rf_listen() {
     // (that was the 0.03 Hz reading).
     lastEdgeMicros = micros();
     newPulse = false;
-    attachInterrupt(digitalPinToInterrupt(bruceConfigPins.CC1101_bus.io0), onPulse, RISING);
+    attachInterrupt(digitalPinToInterrupt(cc1101RxPin()), onPulse, RISING);
     displayRedStripe("Listening...", getComplementaryColor2(bruceConfig.priColor), bruceConfig.priColor);
 
     unsigned long lastPulseTime = millis();
@@ -127,5 +127,5 @@ void rf_listen() {
         delay(5); // feed the watchdog and let button/UI handling breathe
     }
 
-    detachInterrupt(digitalPinToInterrupt(bruceConfigPins.CC1101_bus.io0));
+    detachInterrupt(digitalPinToInterrupt(cc1101RxPin()));
 }

@@ -112,6 +112,13 @@ void cc1101SetPaMode(CC1101PaMode mode) {
     delayMicroseconds(200); // let the switch settle before the radio keys up
 }
 
+// Amplified modules only present demodulated data on GDO2 and treat GDO0 as the data input, so
+// capturing on GDO0 there yields nothing.
+gpio_num_t cc1101RxPin() {
+    const gpio_num_t io2 = bruceConfigPins.CC1101_bus.io2;
+    return io2 != GPIO_NUM_NC ? io2 : bruceConfigPins.CC1101_bus.io0;
+}
+
 void cc1101WaitForIdle() {
     const uint32_t start = millis();
     while ((ELECHOUSE_cc1101.SpiReadStatus(CC1101_MARCSTATE) & 0x1F) != 0x01) {
@@ -334,7 +341,7 @@ bool initRfModule(String mode, float frequency) {
             ioExpander.turnPinOnOff(IO_EXP_CC_RX, HIGH);
             ioExpander.turnPinOnOff(IO_EXP_CC_TX, LOW);
             cc1101SetPaMode(CC1101_PA_RX);
-            pinMode(bruceConfigPins.CC1101_bus.io0, INPUT);
+            pinMode(cc1101RxPin(), INPUT);
             ELECHOUSE_cc1101.SetRx();
             Serial.println("cc1101 SetRx();");
         }
@@ -539,7 +546,7 @@ rmt_channel_handle_t setup_rf_rx() {
     setMHZ(bruceConfigPins.rfFreq);
     rmt_rx_channel_config_t rx_channel_cfg = {};
     rx_channel_cfg.gpio_num = bruceConfigPins.rfModule == CC1101_SPI_MODULE
-                                  ? gpio_num_t(bruceConfigPins.CC1101_bus.io0)
+                                  ? cc1101RxPin()
                                   : gpio_num_t(bruceConfigPins.rfRx); // GPIO number
     rx_channel_cfg.clk_src = RMT_CLK_SRC_DEFAULT;                     // select source clock
     rx_channel_cfg.resolution_hz = 1 * 1000 * 1000; // 1 MHz tick resolution, i.e., 1 tick = 1 µs

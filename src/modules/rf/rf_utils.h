@@ -25,6 +25,7 @@ bool initRfModule(String mode = "", float frequency = 0);
 void deinitRfModule();
 void initCC1101once(SPIClass *SSPI);
 void cc1101SetPaMode(CC1101PaMode mode);
+gpio_num_t cc1101RxPin();
 
 void setMHZ(float frequency);
 int find_pulse_index(const std::vector<int> &indexed_durations, int duration);
