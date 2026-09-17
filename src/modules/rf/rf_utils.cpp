@@ -93,25 +93,20 @@ cc1101InterpolateFsctrl0(float frequency, float minFreq, float maxFreq, uint8_t 
     return uint8_t(minValue + (ratio * float(maxValue - minValue)) + 0.5f);
 }
 
-// Amplified front-ends (Ebyte E07 and alike) gate the PA and the LNA with two active-high enables.
-// Never assert both: that ties the PA output into the LNA input. Idle releases them so an enable
-// sitting on a strapping pin (E07 RX_EN lands on GPIO0 on the CYD 3.5") floats to its pull-up on
-// reset instead of being held low into download mode.
+// Amplified front-ends gate the PA and LNA with two active-high enables. Never assert both - that
+// ties the PA output into the LNA input.
 void cc1101SetPaMode(CC1101PaMode mode) {
     const int tx = bruceConfigPins.cc1101_pa.tx;
     const int rx = bruceConfigPins.cc1101_pa.rx;
     if (tx < 0 || rx < 0) return;
 
-    if (mode == CC1101_PA_IDLE) {
-        pinMode(tx, INPUT);
-        pinMode(rx, INPUT);
-        return;
-    }
-
-    pinMode(tx, OUTPUT);
-    pinMode(rx, OUTPUT);
+    // Latch low before enabling the drivers, otherwise a retained level keys a path for a cycle
     digitalWrite(tx, LOW);
     digitalWrite(rx, LOW);
+    pinMode(tx, OUTPUT);
+    pinMode(rx, OUTPUT);
+    if (mode == CC1101_PA_IDLE) return;
+
     digitalWrite(mode == CC1101_PA_TX ? tx : rx, HIGH);
     delayMicroseconds(200); // let the switch settle before the radio keys up
 }
