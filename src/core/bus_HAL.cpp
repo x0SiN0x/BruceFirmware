@@ -374,8 +374,9 @@ SPIClass *acquireSPIBus(gpio_num_t sck, gpio_num_t miso, gpio_num_t mosi) {
     // bus is already up and must not be reconfigured.
     if (bruceConfigPins.SDCARD_bus.mosi != GPIO_NUM_NC && mosi == bruceConfigPins.SDCARD_bus.mosi) {
 #ifdef USE_TFT_eSPI_TOUCH
-        // setupSdCard() mounts the card on the global SPI here, so sdcardSPI is never started and
-        // handing it out leaves the caller talking to a bus that was never configured.
+        // setupSdCard() mounts on the global SPI here, so sdcardSPI is never started and handing
+        // it out leaves the caller on an unconfigured bus. begin() returns early once running.
+        SPI.begin(sck, miso, mosi);
         return &SPI;
 #else
         return &sdcardSPI;
