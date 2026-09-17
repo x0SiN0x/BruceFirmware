@@ -45,13 +45,21 @@ static const uint8_t T9 = 32;
 static const uint8_t DAC1 = 25;
 static const uint8_t DAC2 = 26;
 
-// I2C
+// I2C (the 3.5" header sits on other pins, let the env override these)
+#ifndef GROVE_SDA
 #define GROVE_SDA 27
+#endif
+#ifndef GROVE_SCL
 #define GROVE_SCL 22
+#endif
 
 // InfraRed
+#ifndef RXLED
 #define RXLED 27
+#endif
+#ifndef TXLED
 #define TXLED 22
+#endif
 
 // Deepsleep
 #define DEEPSLEEP_WAKEUP_PIN 36 // Touch interrupt

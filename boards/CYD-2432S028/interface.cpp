@@ -128,21 +128,22 @@ void _post_setup_gpio() {
     bruceConfigPins.gps_bus.tx = (gpio_num_t)GPS_SERIAL_TX;
     bruceConfigPins.gpsBaudrate = 9600;
 
+    // Not hardcoded: 27 is a free header pin on the 2.8" but the backlight on the 3.5"
     bool pinsChanged = false;
-    if (bruceConfigPins.rfTx != 22) {
-        bruceConfigPins.rfTx = 22;
+    if (bruceConfigPins.rfTx != TXLED) {
+        bruceConfigPins.rfTx = TXLED;
         pinsChanged = true;
     }
-    if (bruceConfigPins.rfRx != 27) {
-        bruceConfigPins.rfRx = 27;
+    if (bruceConfigPins.rfRx != RXLED) {
+        bruceConfigPins.rfRx = RXLED;
         pinsChanged = true;
     }
-    if (bruceConfigPins.irTx != 22) {
-        bruceConfigPins.irTx = 22;
+    if (bruceConfigPins.irTx != TXLED) {
+        bruceConfigPins.irTx = TXLED;
         pinsChanged = true;
     }
-    if (bruceConfigPins.irRx != 27) {
-        bruceConfigPins.irRx = 27;
+    if (bruceConfigPins.irRx != RXLED) {
+        bruceConfigPins.irRx = RXLED;
         pinsChanged = true;
     }
     if (pinsChanged) bruceConfigPins.saveFile();
