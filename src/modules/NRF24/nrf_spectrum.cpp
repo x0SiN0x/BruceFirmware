@@ -16,8 +16,9 @@ String scanChannels(bool web) {
 
     for (int i = 0; i < CHANNELS; i++) {
         NRFradio.setChannel(i);
+        delayMicroseconds(200); // let the synth settle on the new channel before listening
         NRFradio.startListening();
-        delayMicroseconds(128);
+        delayMicroseconds(200);
         NRFradio.stopListening();
 
         int rpd = NRFradio.testRPD() ? 1 : 0;
@@ -63,18 +64,10 @@ void nrf_spectrum() {
 
     if (nrf_start(NRF_MODE_SPI)) { // This function only works on SPI
         NRFradio.setAutoAck(false);
-        NRFradio.disableCRC();       // accept any signal we find
-        NRFradio.setAddressWidth(2); // a reverse engineering tactic (not typically recommended)
-        const uint8_t noiseAddress[][2] = {
-            {0x55, 0x55},
-            {0xAA, 0xAA},
-            {0xA0, 0xAA},
-            {0xAB, 0xAA},
-            {0xAC, 0xAA},
-            {0xAD, 0xAA}
-        };
-        for (uint8_t i = 0; i < 6; ++i) { NRFradio.openReadingPipe(i, noiseAddress[i]); }
-        NRFradio.setDataRate(RF24_1MBPS);
+        NRFradio.disableCRC(); // accept any signal we find
+        // RPD is an energy detector and ignores addressing. setAddressWidth(2) writes SETUP_AW=0,
+        // which the datasheet calls illegal, and RPD then never updates.
+        NRFradio.setDataRate(RF24_2MBPS); // wider receiver bandwidth picks up far more energy
 
         while (!check(EscPress)) {
             scanChannels();

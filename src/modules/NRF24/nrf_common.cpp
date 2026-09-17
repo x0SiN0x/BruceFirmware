@@ -50,6 +50,15 @@ bool nrf_start(NRF24_MODE mode) {
     digitalWrite(bruceConfigPins.NRF24_bus.cs, HIGH);
     pinMode(bruceConfigPins.NRF24_bus.io0, OUTPUT);
     digitalWrite(bruceConfigPins.NRF24_bus.io0, LOW);
+
+    // Anything else still selected on the shared bus drives MISO and the probe below reads garbage.
+    // The CC1101's CS is only raised when its own module is torn down.
+    for (gpio_num_t pin :
+         {bruceConfigPins.CC1101_bus.cs, bruceConfigPins.PN532_bus.cs, bruceConfigPins.SDCARD_bus.cs}) {
+        if (pin == GPIO_NUM_NC || pin == bruceConfigPins.NRF24_bus.cs) continue;
+        pinMode(pin, OUTPUT);
+        digitalWrite(pin, HIGH);
+    }
     delay(5); // Let pins settle before SPI traffic
 
     NRFSPI =
@@ -65,6 +74,10 @@ bool nrf_start(NRF24_MODE mode) {
             rf24_gpio_pin_t(bruceConfigPins.NRF24_bus.io0),
             rf24_gpio_pin_t(bruceConfigPins.NRF24_bus.cs)
         )) {
+        // The radio has no reset pin, so its registers survive an ESP32 reboot for as long as VCC
+        // holds. Anything that left it emitting a constant carrier stays that way - setPALevel()
+        // and setDataRate() both preserve CONT_WAVE/PLL_LOCK - so clear it before handing it over.
+        NRFradio.stopConstCarrier();
         result = true;
     } else {
         return false;
