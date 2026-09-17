@@ -19,9 +19,12 @@ extern const char *subghz_frequency_ranges[];
 extern const int range_limits[4][2];
 extern bool rmtInstalled;
 
+enum CC1101PaMode { CC1101_PA_IDLE = 0, CC1101_PA_TX = 1, CC1101_PA_RX = 2 };
+
 bool initRfModule(String mode = "", float frequency = 0);
 void deinitRfModule();
 void initCC1101once(SPIClass *SSPI);
+void cc1101SetPaMode(CC1101PaMode mode);
 
 void setMHZ(float frequency);
 int find_pulse_index(const std::vector<int> &indexed_durations, int duration);

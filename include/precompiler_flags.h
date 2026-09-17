@@ -232,6 +232,14 @@
 #define CC1101_GDO0_PIN -1
 #endif
 
+#ifndef CC1101_PA_TX_PIN
+#define CC1101_PA_TX_PIN -1
+#endif
+
+#ifndef CC1101_PA_RX_PIN
+#define CC1101_PA_RX_PIN -1
+#endif
+
 #ifndef W5500_SCK_PIN
 #define W5500_SCK_PIN -1
 #endif

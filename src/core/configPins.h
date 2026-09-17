@@ -212,6 +212,8 @@ public:
     I2CPins i2c_bus = {(gpio_num_t)GROVE_SDA, (gpio_num_t)GROVE_SCL};
     UARTPins uart_bus = {(gpio_num_t)SERIAL_RX, (gpio_num_t)SERIAL_TX};
     UARTPins gps_bus = {(gpio_num_t)GPS_SERIAL_RX, (gpio_num_t)GPS_SERIAL_TX};
+    // TX_EN/RX_EN of an amplified CC1101 front-end (Ebyte E07 and alike)
+    UARTPins cc1101_pa = {(gpio_num_t)CC1101_PA_RX_PIN, (gpio_num_t)CC1101_PA_TX_PIN};
 
     // Screen Rotation
     int rotation = ROTATION > 1 ? 3 : 1;

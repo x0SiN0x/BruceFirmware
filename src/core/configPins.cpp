@@ -235,6 +235,12 @@ void BruceConfigPins::fromJson(JsonObject obj) {
         count++;
         log_e("Fail");
     }
+    if (!root["CC1101_PA"].isNull()) {
+        cc1101_pa.fromJson(root["CC1101_PA"].as<JsonObject>());
+    } else {
+        count++;
+        log_e("Fail");
+    }
     validateConfig();
     if (count > 0) saveFile();
 }
@@ -287,6 +293,8 @@ void BruceConfigPins::toJson(JsonObject obj) const {
     uart_bus.toJson(_uart);
     JsonObject _gps = root["GPS_bus"].to<JsonObject>();
     gps_bus.toJson(_gps);
+    JsonObject _ccpa = root["CC1101_PA"].to<JsonObject>();
+    cc1101_pa.toJson(_ccpa);
 }
 
 void BruceConfigPins::loadFile(JsonDocument &jsonDoc, bool checkFS) {
@@ -402,6 +410,7 @@ void BruceConfigPins::validateConfig() {
     validateI2CPins(i2c_bus);
     validateUARTPins(uart_bus);
     validateUARTPins(gps_bus);
+    validateUARTPins(cc1101_pa);
 }
 #if !defined(LITE_VERSION)
 void BruceConfigPins::setLoRaPins(SPIPins value) {

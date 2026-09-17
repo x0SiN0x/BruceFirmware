@@ -93,6 +93,29 @@ cc1101InterpolateFsctrl0(float frequency, float minFreq, float maxFreq, uint8_t 
     return uint8_t(minValue + (ratio * float(maxValue - minValue)) + 0.5f);
 }
 
+// Amplified front-ends (Ebyte E07 and alike) gate the PA and the LNA with two active-high enables.
+// Never assert both: that ties the PA output into the LNA input. Idle releases them so an enable
+// sitting on a strapping pin (E07 RX_EN lands on GPIO0 on the CYD 3.5") floats to its pull-up on
+// reset instead of being held low into download mode.
+void cc1101SetPaMode(CC1101PaMode mode) {
+    const int tx = bruceConfigPins.cc1101_pa.tx;
+    const int rx = bruceConfigPins.cc1101_pa.rx;
+    if (tx < 0 || rx < 0) return;
+
+    if (mode == CC1101_PA_IDLE) {
+        pinMode(tx, INPUT);
+        pinMode(rx, INPUT);
+        return;
+    }
+
+    pinMode(tx, OUTPUT);
+    pinMode(rx, OUTPUT);
+    digitalWrite(tx, LOW);
+    digitalWrite(rx, LOW);
+    digitalWrite(mode == CC1101_PA_TX ? tx : rx, HIGH);
+    delayMicroseconds(200); // let the switch settle before the radio keys up
+}
+
 void cc1101WaitForIdle() {
     const uint32_t start = millis();
     while ((ELECHOUSE_cc1101.SpiReadStatus(CC1101_MARCSTATE) & 0x1F) != 0x01) {
@@ -305,6 +328,7 @@ bool initRfModule(String mode, float frequency) {
         if (mode == "tx") {
             ioExpander.turnPinOnOff(IO_EXP_CC_RX, LOW);
             ioExpander.turnPinOnOff(IO_EXP_CC_TX, HIGH);
+            cc1101SetPaMode(CC1101_PA_TX);
             pinMode(bruceConfigPins.CC1101_bus.io0, OUTPUT);
             ELECHOUSE_cc1101.setPA(12); // set TxPower. The following settings are possible depending
             Serial.println("cc1101 setPA();");
@@ -313,6 +337,7 @@ bool initRfModule(String mode, float frequency) {
         } else if (mode == "rx") {
             ioExpander.turnPinOnOff(IO_EXP_CC_RX, HIGH);
             ioExpander.turnPinOnOff(IO_EXP_CC_TX, LOW);
+            cc1101SetPaMode(CC1101_PA_RX);
             pinMode(bruceConfigPins.CC1101_bus.io0, INPUT);
             ELECHOUSE_cc1101.SetRx();
             Serial.println("cc1101 SetRx();");
@@ -355,6 +380,7 @@ void deinitRfModule() {
         digitalWrite(bruceConfigPins.CC1101_bus.cs, HIGH);
         ioExpander.turnPinOnOff(IO_EXP_CC_RX, LOW);
         ioExpander.turnPinOnOff(IO_EXP_CC_TX, LOW);
+        cc1101SetPaMode(CC1101_PA_IDLE);
     } else digitalWrite(bruceConfigPins.rfTx, LED_OFF);
 }
 

@@ -424,6 +424,7 @@ void sendRfCommand(struct RfCodes rfcode, bool hideDefaultUI) {
         // -10  -6    0    5    7    10   11   12)   Default is max!
         ioExpander.turnPinOnOff(IO_EXP_CC_RX, LOW);
         ioExpander.turnPinOnOff(IO_EXP_CC_TX, HIGH);
+        cc1101SetPaMode(CC1101_PA_TX);
         ELECHOUSE_cc1101.SetTx();
     } else {
         // other single-pinned modules in use
