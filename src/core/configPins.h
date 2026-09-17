@@ -229,7 +229,7 @@ public:
     // RF
     int rfTx = RF_TX_DEFAULT;
     int rfRx = RF_RX_DEFAULT;
-    int rfModule = M5_RF_MODULE;
+    int rfModule = RF_MODULE_DEFAULT;
     float rfFreq = 433.92;
     int rfFxdFreq = 1;
     int rfScanRange = 3;

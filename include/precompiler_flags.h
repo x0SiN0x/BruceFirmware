@@ -54,6 +54,10 @@
 #ifndef SYS_I2C_SCL         // Pin to be used in I2C communications
   #define SYS_I2C_SCL -1
 #endif
+#ifndef RF_MODULE_DEFAULT   // Boards shipping a CC1101 override this with CC1101_SPI_MODULE
+  #define RF_MODULE_DEFAULT M5_RF_MODULE
+#endif
+
 #ifndef RF_TX_DEFAULT       // Default one-pin RF TX, boards with a dedicated pin override it
   #define RF_TX_DEFAULT GROVE_SDA
 #endif
