@@ -491,6 +491,7 @@ void setup() {
 #endif
     _pre_storage_gpio();
     begin_storage();
+    cc1101SetPaMode(CC1101_PA_IDLE);
     RAM_LOG("after-storage"); // bruceConfig/bruceConfigPins loaded from FS
     begin_tft();
     init_clock();
