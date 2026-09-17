@@ -374,14 +374,46 @@ bool PN532::begin() {
     }
     PN532_DBG("[PN532] begin: i2c_check=%d (addr 0x%02X)\n", (int)i2c_check, PN532_I2C_ADDRESS);
 
+    const int cs = bruceConfigPins.PN532_bus.cs;
+    if (!_use_i2c && cs != GPIO_NUM_NC) {
+        // Anything else left selected on the shared bus drives MISO through the probe below.
+        for (gpio_num_t pin :
+             {bruceConfigPins.CC1101_bus.cs, bruceConfigPins.NRF24_bus.cs, bruceConfigPins.SDCARD_bus.cs}) {
+            if (pin == GPIO_NUM_NC || pin == (gpio_num_t)cs) continue;
+            pinMode(pin, OUTPUT);
+            digitalWrite(pin, HIGH);
+        }
+        // The chip ignores the bus until CS is toggled, so a single probe reads back zeroes.
+        pinMode(cs, OUTPUT);
+        for (int i = 0; i < 3; i++) {
+            digitalWrite(cs, LOW);
+            delay(5);
+            digitalWrite(cs, HIGH);
+            delay(5);
+        }
+        delay(100);
+    }
+
     nfc.begin();
 
     uint32_t versiondata = nfc.getFirmwareVersion();
+    // It can still need a moment after waking, so re-wake and retry rather than giving up at once
+    for (int i = 0; !versiondata && !_use_i2c && cs != GPIO_NUM_NC && i < 4; i++) {
+        digitalWrite(cs, LOW);
+        delay(10);
+        digitalWrite(cs, HIGH);
+        delay(100 + i * 50);
+        versiondata = nfc.getFirmwareVersion();
+    }
     PN532_DBG(
         "[PN532] begin: versiondata=0x%08lX result=%d\n",
         (unsigned long)versiondata,
         (int)(i2c_check || versiondata)
     );
+
+    // i2c_check only means anything on the I2C paths, where it is actually probed. In SPI mode it
+    // stays at its initial true and would report a chip that never answered as present.
+    if (!_use_i2c) return versiondata != 0;
 
     return i2c_check || versiondata;
 }
