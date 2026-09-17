@@ -373,7 +373,13 @@ SPIClass *acquireSPIBus(gpio_num_t sck, gpio_num_t miso, gpio_num_t mosi) {
     // Same physical wiring as the SD card: it is mounted for the whole program lifetime, so its
     // bus is already up and must not be reconfigured.
     if (bruceConfigPins.SDCARD_bus.mosi != GPIO_NUM_NC && mosi == bruceConfigPins.SDCARD_bus.mosi) {
+#ifdef USE_TFT_eSPI_TOUCH
+        // setupSdCard() mounts the card on the global SPI here, so sdcardSPI is never started and
+        // handing it out leaves the caller talking to a bus that was never configured.
+        return &SPI;
+#else
         return &sdcardSPI;
+#endif
     }
 
     // Neither the display nor the SD card own these pins: fall back to the one remaining hardware
