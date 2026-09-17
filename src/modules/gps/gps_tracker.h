@@ -34,6 +34,11 @@ private:
     double distance = 0;
     String filename = "";
     TinyGPSPlus gps;
+    // gps.satellites is GGA field 7, the count used in the fix, so it stays 0 until there is one.
+    // Satellites in view comes from GSV and is what shows the antenna working while still searching.
+    TinyGPSCustom satsInView = TinyGPSCustom(gps, "GPGSV", 3);
+    char rawSample[25] = {0};
+    uint8_t rawIdx = 0;
     HardwareSerial GPSserial = HardwareSerial(2);
     int gpsCoordCount = 0;
     bool rxPinReleased = false;

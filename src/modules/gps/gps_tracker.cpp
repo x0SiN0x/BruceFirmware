@@ -42,6 +42,7 @@ void GPSTracker::setup() {
 bool GPSTracker::begin_gps() {
     releasePins();
     pinMode(bruceConfigPins.gps_bus.rx, INPUT);
+    GPSserial.setRxBufferSize(1024); // the default 256 truncates sentences across a screen redraw
     GPSserial.begin(
         bruceConfigPins.gpsBaudrate, SERIAL_8N1, bruceConfigPins.gps_bus.rx, bruceConfigPins.gps_bus.tx
     );
@@ -80,7 +81,15 @@ void GPSTracker::loop() {
 
         if (GPSserial.available() > 0) {
             count = 0;
-            while (GPSserial.available() > 0) gps.encode(GPSserial.read());
+            while (GPSserial.available() > 0) {
+                char c = GPSserial.read();
+                gps.encode(c);
+                // Sentences that neither pass nor fail a checksum are not NMEA at all, so show the
+                // bytes themselves: "$GPGGA,..." means the module, anything else means the wrong pin
+                if (rawIdx >= sizeof(rawSample) - 1) rawIdx = 0;
+                rawSample[rawIdx++] = (c >= 32 && c < 127) ? c : '.';
+                rawSample[rawIdx] = '\0';
+            }
 
             if (gps.location.isUpdated()) {
                 padprintln("GPS location updated");
@@ -131,6 +140,23 @@ void GPSTracker::display_banner() {
         padprintln("GPS Coordinates: " + String(gpsCoordCount), 2);
         padprintf(2, "Distance: %.2fkm\n", distance / 1000);
     }
+
+    // Bytes alone prove nothing - the GPS sits on a UART0 pad and noise never completes a
+    // sentence. Passed sentences are the evidence.
+    padprintf(
+        2,
+        "NMEA: %lu ok, %lu bad, %lu B\n",
+        (unsigned long)gps.passedChecksum(),
+        (unsigned long)gps.failedChecksum(),
+        (unsigned long)gps.charsProcessed()
+    );
+    padprintf(2, "Raw: %s\n", rawSample);
+    padprintf(
+        2,
+        "Sats: %u used, %s in view\n",
+        gps.satellites.isValid() ? gps.satellites.value() : 0,
+        satsInView.isValid() ? satsInView.value() : "0"
+    );
 
     padprintln("");
 }
