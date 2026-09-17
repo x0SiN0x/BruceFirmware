@@ -1,8 +1,10 @@
 #include "utils.h"
 #include "core/wifi/wifi_common.h" //to return MAC addr
 #include "scrollableTextArea.h"
+#include "serialcmds.h"
 #include <Preferences.h>
 #include <globals.h>
+#include <soc/uart_pins.h>
 
 /*********************************************************************
 **  Function: backToMenu
@@ -345,6 +347,32 @@ String repeatString(int length, String character) {
     String result = "";
     for (int i = 0; i < length; i++) { result += character; }
     return result;
+}
+
+/*********************************************************************
+**  Function: gpsDetachConsole
+**  UART0 keeps driving its TX pad even after the GPS UART is routed onto it, so a GPS wired to
+**  those pins (the CYD 3.5" only breaks GPS TX out on GPIO1) ends up fighting the console.
+**  Hand the pads over for as long as the GPS owns them.
+**********************************************************************/
+bool gpsDetachConsole() {
+#if !defined(ARDUINO_USB_CDC_ON_BOOT) || ARDUINO_USB_CDC_ON_BOOT == 0
+    if (bruceConfigPins.gps_bus.checkConflict(U0TXD_GPIO_NUM) ||
+        bruceConfigPins.gps_bus.checkConflict(U0RXD_GPIO_NUM)) {
+        pauseSerialCommandsHandler();
+        Serial.flush();
+        Serial.end();
+        return true;
+    }
+#endif
+    return false;
+}
+
+void gpsRestoreConsole(bool wasDetached) {
+    if (!wasDetached) return;
+    Serial.setRxBufferSize(SAFE_STACK_BUFFER_SIZE / 4);
+    Serial.begin(115200);
+    resumeSerialCommandsHandler();
 }
 
 String formatBytes(uint64_t bytes) {
