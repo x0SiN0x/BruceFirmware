@@ -54,6 +54,10 @@
 #ifndef SYS_I2C_SCL         // Pin to be used in I2C communications
   #define SYS_I2C_SCL -1
 #endif
+#ifndef RFID_MODULE_DEFAULT // Boards shipping a PN532 override this with PN532_SPI_MODULE
+  #define RFID_MODULE_DEFAULT M5_RFID2_MODULE
+#endif
+
 #ifndef RF_MODULE_DEFAULT   // Boards shipping a CC1101 override this with CC1101_SPI_MODULE
   #define RF_MODULE_DEFAULT M5_RF_MODULE
 #endif
