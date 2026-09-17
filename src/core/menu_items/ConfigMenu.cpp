@@ -299,6 +299,8 @@ void ConfigMenu::pinsMenu() {
             {"I2C Finder",     [this]() { find_i2c_addresses(); }                      },
             {"CC1101 Pins",    [this]() { setSPIPinsMenu(bruceConfigPins.CC1101_bus); }},
             {"NRF24  Pins",    [this]() { setSPIPinsMenu(bruceConfigPins.NRF24_bus); } },
+            {"PN532 Pins",     [this]() { setSPIPinsMenu(bruceConfigPins.PN532_bus); } },
+            {"CC1101 PA Pins", [this]() { setUARTPinsMenu(bruceConfigPins.cc1101_pa); }},
 #if !defined(LITE_VERSION)
             {"LoRa Pins",      [this]() { setSPIPinsMenu(bruceConfigPins.LoRa_bus); }  },
             {"ST25R3916 Pins", [this]() { setSPIPinsMenu(bruceConfigPins.ST25R_bus); } },
