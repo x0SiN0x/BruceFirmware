@@ -69,19 +69,25 @@ bool nrf_start(NRF24_MODE mode) {
     }
     delay(10);
 
-    if (NRFradio.begin(
+    // The first probe after a cold boot reads back nothing on some modules, and begin() reports a
+    // perfectly good radio as missing. Opening the CC1101 first is enough to make it answer, so
+    // what it wants is traffic on the bus and a little more settling than the 5ms begin() allows.
+    // Give it a few attempts rather than sending the user round the RF menu to warm it up.
+    bool connected = false;
+    for (int i = 0; i < 4 && !connected; i++) {
+        if (i) delay(20 + i * 30);
+        connected = NRFradio.begin(
             NRFSPI,
             rf24_gpio_pin_t(bruceConfigPins.NRF24_bus.io0),
             rf24_gpio_pin_t(bruceConfigPins.NRF24_bus.cs)
-        )) {
-        // The radio has no reset pin, so its registers survive an ESP32 reboot for as long as VCC
-        // holds. Anything that left it emitting a constant carrier stays that way - setPALevel()
-        // and setDataRate() both preserve CONT_WAVE/PLL_LOCK - so clear it before handing it over.
-        NRFradio.stopConstCarrier();
-        result = true;
-    } else {
-        return false;
+        );
     }
+    if (!connected) return false;
+
+    // No reset pin, so registers survive an ESP32 reboot. setPALevel() and setDataRate() preserve
+    // CONT_WAVE/PLL_LOCK, so a stuck carrier has to be cleared explicitly.
+    NRFradio.stopConstCarrier();
+    result = true;
     return result;
 }
 
