@@ -419,7 +419,7 @@ bool PN532::begin() {
     PN532_DBG(
         "[PN532] begin: versiondata=0x%08lX result=%d\n",
         (unsigned long)versiondata,
-        (int)(i2c_check || versiondata)
+        (int)(_use_i2c ? (i2c_check || versiondata) : (versiondata != 0))
     );
 
     // i2c_check only means anything on the I2C paths, where it is actually probed. In SPI mode it
