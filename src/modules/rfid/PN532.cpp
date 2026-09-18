@@ -325,11 +325,8 @@ PN532::PN532(CONNECTION_TYPE connection_type) {
     else if (connection_type == CONNECTION_TYPE::I2C_SPI) nfc.setInterface(GPIO_NUM_26, GPIO_NUM_25);
 #endif
     else {
-        // Bit-banging the bus pinMode()s the pads back to plain GPIO, and the peripheral manager
-        // answers that by stopping the whole hardware SPI controller behind them - on a board that
-        // hangs the PN532 off the shared header that takes the SD card, the CC1101 and the NRF24
-        // down with it until the next reboot. Take the arbitrated bus where there is one and keep
-        // software SPI for boards wiring the module to a third set of pins, where none is left.
+        // Bit-banging pinMode()s the pads back to GPIO, which stops the hardware SPI controller
+        // behind them and takes the SD card, CC1101 and NRF24 down with it. Use the arbitrated bus.
         SPIClass *spi = acquireSPIBus(
             bruceConfigPins.PN532_bus.sck, bruceConfigPins.PN532_bus.miso, bruceConfigPins.PN532_bus.mosi
         );
