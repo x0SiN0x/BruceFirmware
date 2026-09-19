@@ -84,9 +84,10 @@ bool nrf_start(NRF24_MODE mode) {
     }
     if (!connected) return false;
 
-    // No reset pin, so registers survive an ESP32 reboot. setPALevel() and setDataRate() preserve
-    // CONT_WAVE/PLL_LOCK, so a stuck carrier has to be cleared explicitly.
+    // No reset pin, so registers survive an ESP32 reboot and setPALevel()/setDataRate() preserve
+    // CONT_WAVE/PLL_LOCK. stopConstCarrier() powers down on the way out, so power back up.
     NRFradio.stopConstCarrier();
+    NRFradio.powerUp();
     result = true;
     return result;
 }
