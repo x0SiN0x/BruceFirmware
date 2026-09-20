@@ -38,6 +38,13 @@ CYD28_TouchR touch(CYD28_DISPLAY_HOR_RES_MAX, CYD28_DISPLAY_VER_RES_MAX);
 ** Description:   initial setup for the device
 ***************************************************************************************/
 SPIClass touchSPI;
+
+#if defined(USE_TFT_eSPI_TOUCH)
+// The frame the touch targets were drawn in. convertRawXY() never revisits /calData's swap and
+// invert flags, so the frame has to be read from the file rather than assumed.
+static uint8_t touchCalRotation = ROTATION;
+#endif
+
 void _setup_gpio() {
 #ifndef HAS_CAPACITIVE_TOUCH // Capacitive Touchscreen uses I2C to communicate
     pinMode(XPT2046_CS, OUTPUT);
@@ -87,11 +94,18 @@ void _post_setup_gpio() {
     if (!caldata) {
         tft.setRotation(ROTATION);
         tft.calibrateTouch(calData, TFT_WHITE, TFT_BLACK, 10);
+        touchCalRotation = ROTATION;
 
         caldata = LittleFS.open("/calData", "w");
         if (caldata) {
             caldata.printf(
-                "%d\n%d\n%d\n%d\n%d\n", calData[0], calData[1], calData[2], calData[3], calData[4]
+                "%d\n%d\n%d\n%d\n%d\n%d\n",
+                calData[0],
+                calData[1],
+                calData[2],
+                calData[3],
+                calData[4],
+                touchCalRotation
             );
             caldata.close();
         }
@@ -102,10 +116,32 @@ void _post_setup_gpio() {
             calData[i] = line.toInt();
             Serial.printf("%d, ", calData[i]);
         }
-        Serial.println();
+        // Sixth line, absent in files written before it was recorded. Those fall back to ROTATION.
+        String rotLine = caldata.readStringUntil('\n');
+        rotLine.trim();
+        if (rotLine.length() == 1 && rotLine[0] >= '0' && rotLine[0] <= '3') {
+            touchCalRotation = rotLine[0] - '0';
+        } else {
+            // Absent is the legacy case; present but unparseable means the file is damaged.
+            if (rotLine.length()) Serial.printf("bad calibration rotation '%s' - ", rotLine.c_str());
+            touchCalRotation = ROTATION;
+        }
+        Serial.printf("(calibrated at rotation %d)\n", touchCalRotation);
         caldata.close();
     }
     tft.setTouch(calData);
+
+    // calibrateTouch() draws its targets in ROTATION, but begin_tft() already applied the stored
+    // rotation. Put both back or the panel and the layout disagree.
+    if (tft.getRotation() != bruceConfigPins.rotation) {
+        tft.setRotation(bruceConfigPins.rotation);
+        tftWidth = tft.width();
+#ifdef HAS_TOUCH
+        tftHeight = tft.height() - 20;
+#else
+        tftHeight = tft.height();
+#endif
+    }
 #endif
 
     // Brightness control must be initialized after tft in this case @Pirata
@@ -219,7 +255,28 @@ void InputHandler(void) {
         if (touch.touched()) {
             auto t = touch.getPointScaled();
 #endif
-#if !defined(TOUCH_GT911_I2C)
+#if defined(USE_TFT_eSPI_TOUCH) && defined(TOUCH_ROTATION_FROM_CALIBRATION)
+            // convertRawXY() only rescales, it never re-maps axes. Undo that, turn by the quarter
+            // turns to touchCalRotation, land it in the current frame. In int and clamped: t.x is
+            // uint16_t and the old transforms underflowed. Direction follows ST7796_Rotation.h.
+            {
+                const int w = tft.width(), h = tft.height();
+                int cw = (touchCalRotation & 0b01) ? TFT_HEIGHT : TFT_WIDTH;
+                int ch = (touchCalRotation & 0b01) ? TFT_WIDTH : TFT_HEIGHT;
+                int px = (int)t.x * cw / w;
+                int py = (int)t.y * ch / h;
+                for (int i = (touchCalRotation - bruceConfigPins.rotation) & 0b11; i > 0; i--) {
+                    int nx = ch - 1 - py;
+                    py = px;
+                    px = nx;
+                    int swap = cw;
+                    cw = ch;
+                    ch = swap;
+                }
+                t.x = constrain(px, 0, w - 1);
+                t.y = constrain(py, 0, h - 1);
+            }
+#elif !defined(TOUCH_GT911_I2C)
             // Serial.printf("\nRAW: Touch Pressed on x=%d, y=%d",t.x, t.y);
             if (bruceConfigPins.rotation == 3) {
                 t.y = (tftHeight + 20) - t.y;
