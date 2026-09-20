@@ -53,8 +53,14 @@ void MainMenu::begin(void) {
                      drawMainBorder(false);
 
                      MenuItemInterface *obj = static_cast<MenuItemInterface *>(menuItem);
-                     float scale = float((float)tftWidth / (float)240);
-                     if (bruceConfigPins.rotation & 0b01) scale = float((float)tftHeight / (float)135);
+                     // Icons are drawn for a 240x135 landscape panel, so scale from the short edge
+                     // whichever way round the screen is. Landscape is unchanged.
+                     int shortEdge = tftWidth < tftHeight ? tftWidth : tftHeight;
+                     float scale = (float)shortEdge / 135.0f;
+                     // Widest icons are 80 units; each arrow reaches 25 more plus half its 3-unit
+                     // stroke, so the pair costs 133 between the pads. 8px more for the round caps.
+                     float widthLimit = (float)(tftWidth - 2 * BORDER_PAD_X - 8) / 133.0f;
+                     if (widthLimit < scale) scale = widthLimit;
                      obj->draw(scale);
 #if defined(HAS_TOUCH)
                      TouchFooter();

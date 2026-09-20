@@ -62,12 +62,17 @@ int gsetRotation(bool set) {
     int result = ROTATION;
     int mask = ROTATION > 1 ? -2 : 2;
 
+    // The entries are offsets from ROTATION, so name them by what they land on. A portrait-default
+    // board would otherwise label its portrait entries "Landscape".
+    const bool landscapeDefault = ROTATION & 0b01;
     options = {
-        {"Default",         [&]() { result = ROTATION; }                        },
-        {"Landscape (180)", [&]() { result = ROTATION + mask; }                 },
+        {"Default",                                               [&]() { result = ROTATION; }       },
+        {landscapeDefault ? "Landscape (180)" : "Portrait (180)", [&]() { result = ROTATION + mask; }},
 #if TFT_WIDTH >= 170 && TFT_HEIGHT >= 240
-        {"Portrait (+90)",  [&]() { result = ROTATION > 0 ? ROTATION - 1 : 3; } },
-        {"Portrait (-90)",  [&]() { result = ROTATION == 3 ? 0 : ROTATION + 1; }},
+        {landscapeDefault ? "Portrait (+90)" : "Landscape (+90)",
+         [&]() { result = ROTATION > 0 ? ROTATION - 1 : 3; }                                         },
+        {landscapeDefault ? "Portrait (-90)" : "Landscape (-90)",
+         [&]() { result = ROTATION == 3 ? 0 : ROTATION + 1; }                                        },
 
 #endif
     };
@@ -84,6 +89,9 @@ int gsetRotation(bool set) {
         tft.setRotation(result);
         tft.setRotation(result); // must repeat, sometimes ESP32S3 miss one SPI command and it just
                                  // jumps this step and don't rotate
+        // GRAM still holds the frame drawn in the old orientation, and the menu redraws with
+        // clear=false, so the old layout reads out through the new one unless it is wiped here.
+        tft.fillScreen(bruceConfig.bgColor);
     }
     returnToMenu = true;
 

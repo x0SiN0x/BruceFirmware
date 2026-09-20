@@ -27,7 +27,8 @@ public:
     String getName() const { return String(_name); }
 
     void draw(float scale = 1) {
-        if (rotation != bruceConfigPins.rotation) resetCoordinates();
+        if (rotation != bruceConfigPins.rotation || cachedW != tftWidth || cachedH != tftHeight)
+            resetCoordinates();
         if (!checkTheme()) {
             tft.fillRect(0, 27, tftWidth, tftHeight - 27, bruceConfig.bgColor);
             drawIcon(scale);
@@ -107,7 +108,11 @@ public:
 
 protected:
     const char *_name = "";
-    uint8_t rotation = ROTATION;
+    // Not ROTATION: these are seeded at static init from the landscape constants, before
+    // begin_tft() knows the real size. Start invalid so the first draw derives it.
+    uint8_t rotation = 0xFF;
+    int cachedW = -1;
+    int cachedH = -1;
 
     int iconAreaH =
         ((tftHeight - 2 * BORDER_PAD_Y) % 2 == 0 ? tftHeight - 2 * BORDER_PAD_Y
@@ -154,6 +159,8 @@ protected:
         arrowAreaW = iconAreaX - arrowAreaX;
 
         rotation = bruceConfigPins.rotation;
+        cachedW = tftWidth;
+        cachedH = tftHeight;
     }
 
 private:
