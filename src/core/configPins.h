@@ -216,7 +216,7 @@ public:
     UARTPins cc1101_pa = {(gpio_num_t)CC1101_PA_RX_PIN, (gpio_num_t)CC1101_PA_TX_PIN};
 
     // Screen Rotation
-    int rotation = ROTATION > 1 ? 3 : 1;
+    int rotation = ROTATION;
 
     // BLE
     String bleName = String("Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX));
