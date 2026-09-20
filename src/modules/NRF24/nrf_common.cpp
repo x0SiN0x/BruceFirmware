@@ -69,10 +69,8 @@ bool nrf_start(NRF24_MODE mode) {
     }
     delay(10);
 
-    // The first probe after a cold boot reads back nothing on some modules, and begin() reports a
-    // perfectly good radio as missing. Opening the CC1101 first is enough to make it answer, so
-    // what it wants is traffic on the bus and a little more settling than the 5ms begin() allows.
-    // Give it a few attempts rather than sending the user round the RF menu to warm it up.
+    // A fallback, not the cure - the cold-boot failure was a neighbour holding MISO, now handled
+    // in setup_gpio(). Still cheap for a module that wants longer than the 5ms begin() allows.
     bool connected = false;
     for (int i = 0; i < 4 && !connected; i++) {
         if (i) delay(20 + i * 30);

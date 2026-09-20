@@ -231,6 +231,21 @@ void setup_gpio() {
     // Smoochiee v2 uses a AW9325 tro control GPS, MIC, Vibro and CC1101 RX/TX powerlines
     ioExpander.init(IO_EXPANDER_ADDRESS, &Wire);
 
+    // Deselect everything on the shared bus before the SD probe in begin_storage() clocks it. A
+    // CC1101 floating selected latches that traffic as register writes, and IOCFG1 can then leave
+    // it driving GDO1/SO onto MISO while deselected - only SRES clears that.
+    // gpio_set_level() first so the pad comes up high instead of glitching low.
+    for (gpio_num_t cs :
+         {bruceConfigPins.CC1101_bus.cs,
+          bruceConfigPins.NRF24_bus.cs,
+          bruceConfigPins.PN532_bus.cs,
+          bruceConfigPins.SDCARD_bus.cs,
+          bruceConfigPins.LoRa_bus.cs}) {
+        if (cs == GPIO_NUM_NC || !GPIO_IS_VALID_OUTPUT_GPIO(cs)) continue;
+        gpio_set_level(cs, HIGH);
+        pinMode(cs, OUTPUT);
+        digitalWrite(cs, HIGH);
+    }
     initCC1101once(acquireSPIBus(
         bruceConfigPins.CC1101_bus.sck, bruceConfigPins.CC1101_bus.miso, bruceConfigPins.CC1101_bus.mosi
     ));
