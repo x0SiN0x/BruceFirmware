@@ -250,14 +250,16 @@ void showDeviceInfo() {
 ** Touchscreen Mapping, include this function after reading the touchPoint
 **********************************************************************/
 void touchHeatMap(struct TouchPoint t) {
+    // The left column is deliberately unbounded below: t.x is unsigned, so an explicit
+    // "> third_x * 0" only served to drop every touch that landed on x == 0.
     int third_x = tftWidth / 3;
     int third_y = tftHeight / 3;
 
-    if (t.x > third_x * 0 && t.x < third_x * 1 && t.y > third_y) PrevPress = true;
+    if (t.x < third_x * 1 && t.y > third_y) PrevPress = true;
     if (t.x > third_x * 1 && t.x < third_x * 2 && ((t.y > third_y && t.y < third_y * 2) || t.y > tftHeight))
         SelPress = true;
     if (t.x > third_x * 2 && t.x < third_x * 3) NextPress = true;
-    if (t.x > third_x * 0 && t.x < third_x * 1 && t.y < third_y) EscPress = true;
+    if (t.x < third_x * 1 && t.y < third_y) EscPress = true;
     if (t.x > third_x * 1 && t.x < third_x * 2 && t.y < third_y) UpPress = true;
     if (t.x > third_x * 1 && t.x < third_x * 2 && t.y > third_y * 2 && t.y < third_y * 3) DownPress = true;
     /*

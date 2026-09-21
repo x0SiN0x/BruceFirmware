@@ -129,6 +129,19 @@ void _post_setup_gpio() {
         Serial.printf("(calibrated at rotation %d)\n", touchCalRotation);
         caldata.close();
     }
+
+#if defined(TOUCH_ROTATION_FROM_CALIBRATION)
+    // calibrateTouch() records where the fingertip sat on each corner target, never the panel edge,
+    // so getTouch() discards everything converting outside [0,_width). Widen the span to map that
+    // border back on screen. Spans are 12-bit, so this cannot overflow.
+    const uint16_t padX = calData[1] / 16;
+    const uint16_t padY = calData[3] / 16;
+    calData[0] = calData[0] > padX ? calData[0] - padX : 1;
+    calData[2] = calData[2] > padY ? calData[2] - padY : 1;
+    calData[1] += 2 * padX;
+    calData[3] += 2 * padY;
+#endif
+
     tft.setTouch(calData);
 
     // calibrateTouch() draws its targets in ROTATION, but begin_tft() already applied the stored
