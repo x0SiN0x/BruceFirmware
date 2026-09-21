@@ -357,16 +357,47 @@ void boot_screen_anim() {
                 bruceConfig.priColor
             );
         if (!boot_img && (millis() - i > 3400) && (millis() - i) < 3600) tft.fillScreen(bruceConfig.bgColor);
-        if (!boot_img && (millis() - i > 3600))
-            tft.drawXBitmap(
-                (tftWidth - 238) / 2,
-                (tftHeight - 133) / 2,
-                bits,
-                bits_width,
-                bits_height,
-                bruceConfig.bgColor,
-                bruceConfig.priColor
-            );
+        if (!boot_img && (millis() - i > 3600)) {
+#if defined(BOOT_ART_XBM)
+            // Portrait only: the artwork is 264 wide. ROTATION is just the default and the menu can
+            // rotate at runtime, so test the live dimensions.
+            if (tftWidth < tftHeight) {
+                tft.drawXBitmap(
+                    (tftWidth - 238) / 2,
+                    40,
+                    bits,
+                    bits_width,
+                    bits_height,
+                    bruceConfig.bgColor,
+                    bruceConfig.priColor
+                );
+                tft.drawXBitmap(
+                    (tftWidth - boot_art_width) / 2,
+                    185,
+                    boot_art_bits,
+                    boot_art_width,
+                    boot_art_height,
+                    bruceConfig.bgColor,
+                    bruceConfig.priColor
+                );
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+                tft.setTextSize(FM);
+                const char *tagline[] = {
+                    "Build Together.", "Share Forward", "Better Tools Through", "Collaboration"
+                };
+                for (int l = 0; l < 4; l++) tft.drawCentreString(tagline[l], tftWidth / 2, 373 + l * 18, 1);
+            } else
+#endif
+                tft.drawXBitmap(
+                    (tftWidth - 238) / 2,
+                    (tftHeight - 133) / 2,
+                    bits,
+                    bits_width,
+                    bits_height,
+                    bruceConfig.bgColor,
+                    bruceConfig.priColor
+                );
+        }
 #endif
         if (check(AnyKeyPress)) // If any key or M5 key is pressed, it'll jump the boot screen
         {
