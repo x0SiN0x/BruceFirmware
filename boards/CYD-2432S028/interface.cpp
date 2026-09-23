@@ -204,7 +204,11 @@ void InputHandler(void) {
 #if defined(USE_TFT_eSPI_TOUCH)
         TouchPoint t;
         checkPowerSaveTime();
+#if defined(TOUCH_ROTATION_FROM_CALIBRATION)
+        bool _IH_touched = tft.getTouchClamped(&t.x, &t.y);
+#else
         bool _IH_touched = tft.getTouch(&t.x, &t.y);
+#endif
         if (_IH_touched) {
             NextPress = false;
             PrevPress = false;

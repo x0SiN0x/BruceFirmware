@@ -195,6 +195,53 @@ uint8_t TFT_eSPI::getTouch(uint16_t *x, uint16_t *y, uint16_t threshold){
 }
 
 /***************************************************************************************
+** Function name:           getTouchClamped
+** Description:             as getTouch, but saturate an out-of-span sample to the edge
+***************************************************************************************/
+uint8_t TFT_eSPI::getTouchClamped(uint16_t *x, uint16_t *y, uint16_t threshold){
+  uint16_t x_tmp, y_tmp;
+
+  if (threshold<20) threshold = 20;
+  if (_pressTime > millis()) threshold=20;
+
+  uint8_t n = 5;
+  uint8_t valid = 0;
+  while (n--)
+  {
+    if (validTouch(&x_tmp, &y_tmp, threshold)) valid++;
+  }
+
+  if (valid<1) { _pressTime = 0; return false; }
+
+  _pressTime = millis() + 50;
+
+  // Saturate the validated raw sample into the calibrated span before converting. Calibration
+  // records where the fingertip sat on each corner target, never the panel edge, so a press
+  // beyond a target converts out of bounds and getTouch() throws it away. This has to happen
+  // before the conversion: convertRawXY() stores into uint16_t, so by then a low-side overshoot
+  // is indistinguishable from a high-side one. With the rotate flag set the converter reads raw
+  // Y through the x calibration and raw X through the y one, so the pointers follow it.
+  uint16_t *rx = touchCalibration_rotate ? &y_tmp : &x_tmp;
+  uint16_t *ry = touchCalibration_rotate ? &x_tmp : &y_tmp;
+  if (*rx < touchCalibration_x0) *rx = touchCalibration_x0;
+  if (*rx > touchCalibration_x0 + touchCalibration_x1) *rx = touchCalibration_x0 + touchCalibration_x1;
+  if (*ry < touchCalibration_y0) *ry = touchCalibration_y0;
+  if (*ry > touchCalibration_y0 + touchCalibration_y1) *ry = touchCalibration_y0 + touchCalibration_y1;
+
+  convertRawXY(&x_tmp, &y_tmp);
+
+  // The top of the span converts to exactly the dimension, which is one past the last pixel.
+  if (x_tmp >= _width)  x_tmp = _width  - 1;
+  if (y_tmp >= _height) y_tmp = _height - 1;
+
+  _pressX = x_tmp;
+  _pressY = y_tmp;
+  *x = _pressX;
+  *y = _pressY;
+  return valid;
+}
+
+/***************************************************************************************
 ** Function name:           convertRawXY
 ** Description:             convert raw touch x,y values to screen coordinates 
 ***************************************************************************************/

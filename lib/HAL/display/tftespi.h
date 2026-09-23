@@ -67,6 +67,7 @@ public:
     // Touchscreen Functions
     using TFT_eSPI::calibrateTouch;
     using TFT_eSPI::getTouch;
+    using TFT_eSPI::getTouchClamped;
     using TFT_eSPI::getTouchRaw;
     using TFT_eSPI::setTouch;
 #endif
