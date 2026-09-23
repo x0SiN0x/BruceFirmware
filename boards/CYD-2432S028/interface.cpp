@@ -90,8 +90,39 @@ void _post_setup_gpio() {
     pinMode(TOUCH_CS, OUTPUT);
     uint16_t calData[5];
     File caldata = LittleFS.open("/calData", "r");
+    bool needsCalibration = !caldata;
 
-    if (!caldata) {
+    if (caldata) {
+        Serial.print("\ntft Calibration data: ");
+        for (int i = 0; i < 5; i++) {
+            String line = caldata.readStringUntil('\n');
+            calData[i] = line.toInt();
+            Serial.printf("%d, ", calData[i]);
+        }
+        // Sixth line, absent in files written before the frame was recorded.
+        String rotLine = caldata.readStringUntil('\n');
+        rotLine.trim();
+        if (rotLine.length() == 1 && rotLine[0] >= '0' && rotLine[0] <= '3') {
+            touchCalRotation = rotLine[0] - '0';
+        } else {
+#if defined(TOUCH_ROTATION_FROM_CALIBRATION)
+            // The frame cannot be inferred: builds of this board have written five-line files at
+            // rotations 2, 0 and 1. A wrong frame rotates every touch, so recalibrate instead.
+            Serial.printf("calibration frame missing or bad ('%s') - recalibrating\n", rotLine.c_str());
+            needsCalibration = true;
+#else
+            if (rotLine.length()) Serial.printf("bad calibration rotation '%s' - ", rotLine.c_str());
+            touchCalRotation = ROTATION;
+#endif
+        }
+        if (!needsCalibration) Serial.printf("(calibrated at rotation %d)\n", touchCalRotation);
+        caldata.close();
+#if defined(TOUCH_ROTATION_FROM_CALIBRATION)
+        if (needsCalibration) LittleFS.remove("/calData");
+#endif
+    }
+
+    if (needsCalibration) {
         tft.setRotation(ROTATION);
         tft.calibrateTouch(calData, TFT_WHITE, TFT_BLACK, 10);
         touchCalRotation = ROTATION;
@@ -109,38 +140,7 @@ void _post_setup_gpio() {
             );
             caldata.close();
         }
-    } else {
-        Serial.print("\ntft Calibration data: ");
-        for (int i = 0; i < 5; i++) {
-            String line = caldata.readStringUntil('\n');
-            calData[i] = line.toInt();
-            Serial.printf("%d, ", calData[i]);
-        }
-        // Sixth line, absent in files written before it was recorded. Those fall back to ROTATION.
-        String rotLine = caldata.readStringUntil('\n');
-        rotLine.trim();
-        if (rotLine.length() == 1 && rotLine[0] >= '0' && rotLine[0] <= '3') {
-            touchCalRotation = rotLine[0] - '0';
-        } else {
-            // Absent is the legacy case; present but unparseable means the file is damaged.
-            if (rotLine.length()) Serial.printf("bad calibration rotation '%s' - ", rotLine.c_str());
-            touchCalRotation = ROTATION;
-        }
-        Serial.printf("(calibrated at rotation %d)\n", touchCalRotation);
-        caldata.close();
     }
-
-#if defined(TOUCH_ROTATION_FROM_CALIBRATION)
-    // calibrateTouch() records where the fingertip sat on each corner target, never the panel edge,
-    // so getTouch() discards everything converting outside [0,_width). Widen the span to map that
-    // border back on screen. Spans are 12-bit, so this cannot overflow.
-    const uint16_t padX = calData[1] / 16;
-    const uint16_t padY = calData[3] / 16;
-    calData[0] = calData[0] > padX ? calData[0] - padX : 1;
-    calData[2] = calData[2] > padY ? calData[2] - padY : 1;
-    calData[1] += 2 * padX;
-    calData[3] += 2 * padY;
-#endif
 
     tft.setTouch(calData);
 
@@ -276,8 +276,12 @@ void InputHandler(void) {
                 const int w = tft.width(), h = tft.height();
                 int cw = (touchCalRotation & 0b01) ? TFT_HEIGHT : TFT_WIDTH;
                 int ch = (touchCalRotation & 0b01) ? TFT_WIDTH : TFT_HEIGHT;
-                int px = (int)t.x * cw / w;
-                int py = (int)t.y * ch / h;
+                // convertRawXY() multiplies by the display dimension and divides by the span,
+                // so the inverse divides by the full dimension too. Integer truncation then costs
+                // the last pixel only (319*480/320 = 478), so special-case it. Rescaling by
+                // (cw-1)/(w-1) instead would move 159 interior coordinates on the shrinking axis.
+                int px = (t.x >= w - 1) ? cw - 1 : (int)t.x * cw / w;
+                int py = (t.y >= h - 1) ? ch - 1 : (int)t.y * ch / h;
                 for (int i = (touchCalRotation - bruceConfigPins.rotation) & 0b11; i > 0; i--) {
                     int nx = ch - 1 - py;
                     py = px;
