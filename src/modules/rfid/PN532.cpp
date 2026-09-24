@@ -384,6 +384,8 @@ bool PN532::begin() {
 
     const int cs = bruceConfigPins.PN532_bus.cs;
     if (!_use_i2c && cs != GPIO_NUM_NC) {
+#if defined(OPENCYD_SHARED_SPI)
+        // Only OpenCYD guarantees that these other peripherals are installed on the shared bus.
         // Anything else left selected on the shared bus drives MISO through the probe below.
         for (gpio_num_t pin :
              {bruceConfigPins.CC1101_bus.cs, bruceConfigPins.NRF24_bus.cs, bruceConfigPins.SDCARD_bus.cs}) {
@@ -391,6 +393,7 @@ bool PN532::begin() {
             pinMode(pin, OUTPUT);
             digitalWrite(pin, HIGH);
         }
+#endif
         // The chip ignores the bus until CS is toggled, so a single probe reads back zeroes.
         pinMode(cs, OUTPUT);
         for (int i = 0; i < 3; i++) {

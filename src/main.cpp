@@ -231,6 +231,8 @@ void setup_gpio() {
     // Smoochiee v2 uses a AW9325 tro control GPS, MIC, Vibro and CC1101 RX/TX powerlines
     ioExpander.init(IO_EXPANDER_ADDRESS, &Wire);
 
+#if defined(OPENCYD_SHARED_SPI)
+    // OpenCYD populates these peripherals; other boards may reuse their default CS pins.
     // Deselect everything on the shared bus before the SD probe in begin_storage() clocks it. A
     // CC1101 floating selected latches that traffic as register writes, and IOCFG1 can then leave
     // it driving GDO1/SO onto MISO while deselected - only SRES clears that.
@@ -249,6 +251,7 @@ void setup_gpio() {
         pinMode(cs, OUTPUT);
         digitalWrite(cs, HIGH);
     }
+#endif
     initCC1101once(acquireSPIBus(
         bruceConfigPins.CC1101_bus.sck, bruceConfigPins.CC1101_bus.miso, bruceConfigPins.CC1101_bus.mosi
     ));

@@ -51,6 +51,8 @@ bool nrf_start(NRF24_MODE mode) {
     pinMode(bruceConfigPins.NRF24_bus.io0, OUTPUT);
     digitalWrite(bruceConfigPins.NRF24_bus.io0, LOW);
 
+#if defined(OPENCYD_SHARED_SPI)
+    // Only OpenCYD guarantees that these other peripherals are installed on the shared bus.
     // Anything else still selected on the shared bus drives MISO and the probe below reads garbage.
     // The CC1101's CS is only raised when its own module is torn down.
     for (gpio_num_t pin :
@@ -59,6 +61,7 @@ bool nrf_start(NRF24_MODE mode) {
         pinMode(pin, OUTPUT);
         digitalWrite(pin, HIGH);
     }
+#endif
     delay(5); // Let pins settle before SPI traffic
 
     NRFSPI =
