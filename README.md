@@ -275,6 +275,7 @@ Other media can be [found here](./media/).
 - @pablonymous RF functions to read RAW Data
 - [Smoochiee](https://github.com/smoochiee) for Bruce PCB design.
 - TH3_KR4K3N for Stick cplus extender PCB design.
+- [@x0SiN0x](https://github.com/x0SiN0x) for the [OpenCYD Carrier Board](https://github.com/x0SiN0x/OpenCYD-CB).
 - Everyone who contributed in some way to the project, thanks :heart:
 
 Bruce also stands on the shoulders of other great open-source firmware projects,
