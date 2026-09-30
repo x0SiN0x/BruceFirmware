@@ -359,7 +359,12 @@ bool gpsDetachConsole() {
 #if !defined(ARDUINO_USB_CDC_ON_BOOT) || ARDUINO_USB_CDC_ON_BOOT == 0
     if (bruceConfigPins.gps_bus.checkConflict(U0TXD_GPIO_NUM) ||
         bruceConfigPins.gps_bus.checkConflict(U0RXD_GPIO_NUM)) {
-        pauseSerialCommandsHandler();
+        // A command still running owns the port, which is the race the pause is there to avoid.
+        if (!pauseSerialCommandsHandler()) {
+            resumeSerialCommandsHandler();
+            Serial.println("serial commands busy - leaving the console on the GPS pads");
+            return false;
+        }
         Serial.flush();
         Serial.end();
         return true;
