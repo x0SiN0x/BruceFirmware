@@ -249,7 +249,7 @@ Also, [read our FAQ](https://wiki.bruce.computer/faq/)
 | [OpenCYD-CB](https://github.com/x0SiN0x/OpenCYD-CB) (E32R35T / E32R40T carrier)                                                                                                                          | :ok:³ | :ok:  |   :x:    |         :ok:         | :x:  |  :x:   |   :x:   |   :x:   |    :x:     |     :x:      |
 ¹ Core, CYD and StickCs Bad-USB: [here](https://wiki.bruce.computer/features/others/#badusb)
 ² CYD have a LITE_VERSION version for Launcher Compatibility
-³ OpenCYD-CB drives the Ebyte E07 PA/LNA enables
+³ OpenCYD-CB drives the Ebyte E07 PA/LNA enable pins
 
 _LITE_VERSION_: TelNet, SSH, WireGuard, ScanHosts, RawSniffer, Brucegotchi, BLEBacon, BLEScan and Interpreter are NOT available for M5Launcher Compatibility
 
