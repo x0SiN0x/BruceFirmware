@@ -250,8 +250,6 @@ void showDeviceInfo() {
 ** Touchscreen Mapping, include this function after reading the touchPoint
 **********************************************************************/
 void touchHeatMap(struct TouchPoint t) {
-    // The left column is deliberately unbounded below: t.x is unsigned, so an explicit
-    // "> third_x * 0" only served to drop every touch that landed on x == 0.
     int third_x = tftWidth / 3;
     int third_y = tftHeight / 3;
 

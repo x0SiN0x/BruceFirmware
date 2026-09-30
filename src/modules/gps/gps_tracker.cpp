@@ -84,8 +84,7 @@ void GPSTracker::loop() {
             while (GPSserial.available() > 0) {
                 char c = GPSserial.read();
                 gps.encode(c);
-                // Sentences that neither pass nor fail a checksum are not NMEA at all, so show the
-                // bytes themselves: "$GPGGA,..." means the module, anything else means the wrong pin
+                // Keep a printable tail: bytes that are not NMEA never reach the checksum counters.
                 if (rawIdx >= sizeof(rawSample) - 1) rawIdx = 0;
                 rawSample[rawIdx++] = (c >= 32 && c < 127) ? c : '.';
                 rawSample[rawIdx] = '\0';
@@ -141,8 +140,6 @@ void GPSTracker::display_banner() {
         padprintf(2, "Distance: %.2fkm\n", distance / 1000);
     }
 
-    // Bytes alone prove nothing - the GPS sits on a UART0 pad and noise never completes a
-    // sentence. Passed sentences are the evidence.
     padprintf(
         2,
         "NMEA: %lu ok, %lu bad, %lu B\n",

@@ -274,16 +274,14 @@ void InputHandler(void) {
 #endif
 #if defined(USE_TFT_eSPI_TOUCH) && defined(TOUCH_ROTATION_FROM_CALIBRATION)
             // convertRawXY() only rescales, it never re-maps axes. Undo that, turn by the quarter
-            // turns to touchCalRotation, land it in the current frame. In int and clamped: t.x is
-            // uint16_t and the old transforms underflowed. Direction follows ST7796_Rotation.h.
+            // turns to touchCalRotation, land it in the current frame. Signed throughout, since t.x
+            // is uint16_t. Direction follows ST7796_Rotation.h.
             {
                 const int w = tft.width(), h = tft.height();
                 int cw = (touchCalRotation & 0b01) ? TFT_HEIGHT : TFT_WIDTH;
                 int ch = (touchCalRotation & 0b01) ? TFT_WIDTH : TFT_HEIGHT;
-                // convertRawXY() multiplies by the display dimension and divides by the span,
-                // so the inverse divides by the full dimension too. Integer truncation then costs
-                // the last pixel only (319*480/320 = 478), so special-case it. Rescaling by
-                // (cw-1)/(w-1) instead would move 159 interior coordinates on the shrinking axis.
+                // The inverse of convertRawXY() divides by the full dimension, so truncation only
+                // costs the last pixel (319*480/320 = 478). Special-case it.
                 int px = (t.x >= w - 1) ? cw - 1 : (int)t.x * cw / w;
                 int py = (t.y >= h - 1) ? ch - 1 : (int)t.y * ch / h;
                 for (int i = (touchCalRotation - bruceConfigPins.rotation) & 0b11; i > 0; i--) {

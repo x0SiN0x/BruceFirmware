@@ -72,8 +72,7 @@ bool nrf_start(NRF24_MODE mode) {
     }
     delay(10);
 
-    // A fallback, not the cure - the cold-boot failure was a neighbour holding MISO, now handled
-    // in setup_gpio(). Still cheap for a module that wants longer than the 5ms begin() allows.
+    // Some modules need longer to answer than the 5ms begin() allows.
     bool connected = false;
     for (int i = 0; i < 4 && !connected; i++) {
         if (i) delay(20 + i * 30);
