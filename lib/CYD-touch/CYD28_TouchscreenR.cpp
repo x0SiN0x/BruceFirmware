@@ -272,23 +272,29 @@ void CYD28_TouchR::update() {
 }
 // ------------------------------------------------------------
 void CYD28_TouchR::convertRawXY(uint16_t *x, uint16_t *y) {
-    uint16_t x_tmp = *x, y_tmp = *y, xx, yy;
+    uint16_t x_tmp = *x, y_tmp = *y;
+    // Signed: calibration records where a fingertip sat on each corner target, never the panel
+    // edge, so a press beyond one converts below zero. Computed unsigned it wrapped and the high
+    // clamp below then pinned it to the opposite edge.
+    int32_t xx, yy;
 
     if (!touchCalibration_rotate) {
-        xx = (x_tmp - touchCalibration_x0) * sizeX_px / (touchCalibration_x1 - touchCalibration_x0);
-        yy = (y_tmp - touchCalibration_y0) * sizeY_px / (touchCalibration_y1 - touchCalibration_y0);
+        xx = ((int32_t)x_tmp - touchCalibration_x0) * sizeX_px / (touchCalibration_x1 - touchCalibration_x0);
+        yy = ((int32_t)y_tmp - touchCalibration_y0) * sizeY_px / (touchCalibration_y1 - touchCalibration_y0);
         if (touchCalibration_invert_x) xx = sizeX_px - xx;
         if (touchCalibration_invert_y) yy = sizeY_px - yy;
     } else {
-        xx = (y_tmp - touchCalibration_x0) * sizeX_px / (touchCalibration_x1 - touchCalibration_x0);
-        yy = (x_tmp - touchCalibration_y0) * sizeY_px / (touchCalibration_y1 - touchCalibration_y0);
+        xx = ((int32_t)y_tmp - touchCalibration_x0) * sizeX_px / (touchCalibration_x1 - touchCalibration_x0);
+        yy = ((int32_t)x_tmp - touchCalibration_y0) * sizeY_px / (touchCalibration_y1 - touchCalibration_y0);
         if (touchCalibration_invert_x) xx = sizeX_px - xx;
         if (touchCalibration_invert_y) yy = sizeY_px - yy;
     }
-    if (xx > sizeX_px) xx = sizeX_px - 1;
-    if (yy > sizeY_px) yy = sizeY_px - 1;
-    *x = xx;
-    *y = yy;
+    if (xx < 0) xx = 0;
+    if (yy < 0) yy = 0;
+    if (xx >= sizeX_px) xx = sizeX_px - 1;
+    if (yy >= sizeY_px) yy = sizeY_px - 1;
+    *x = (uint16_t)xx;
+    *y = (uint16_t)yy;
 }
 
 /***************************************************************************************
