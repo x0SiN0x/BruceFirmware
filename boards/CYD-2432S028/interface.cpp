@@ -89,6 +89,10 @@ void _setup_gpio() {
     // I2C header, resistive panels only: on the 035C these two are the GT911 SCL and INT.
     bruceConfigPins.i2c_bus = {(gpio_num_t)32, (gpio_num_t)25}; // sda, scl
 #endif
+    // 27 is the backlight on this panel, not a free header pin, which is why IR_RX_PINS and
+    // RF_TX_PINS for this base list only 22 and 35.
+    bruceConfigPins.irRx = 22;
+    bruceConfigPins.rfTx = 22;
     bruceConfigPins.uart_bus = {(gpio_num_t)3, (gpio_num_t)1}; // rx, tx
     bruceConfigPins.gps_bus = {(gpio_num_t)3, (gpio_num_t)1};  // rx, tx
     bruceConfigPins.CC1101_bus = {
