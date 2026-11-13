@@ -250,7 +250,9 @@ void touchHeatMap(struct BruceTouchPoint t) {
     // hit-test raw taps itself (see loopOptions()) can turn zone-reading off without losing the footer.
     if (t.y <= tftHeight && !touchZoneOutsideFooterEnabled) return;
 
-    if (t.x > third_x * 0 && t.x < third_x * 1) PrevPress = true;
+    // Unbounded below on purpose: "> third_x * 0" only dropped a press landing on x == 0, which
+    // the left edge now legitimately produces.
+    if (t.x < third_x * 1) PrevPress = true;
     if (t.x > third_x * 1 && t.x < third_x * 2 && ((t.y > third_y && t.y < third_y * 2) || t.y > tftHeight))
         SelPress = true;
     if (t.x > third_x * 2 && t.x < third_x * 3 && t.y > third_y) NextPress = true;
