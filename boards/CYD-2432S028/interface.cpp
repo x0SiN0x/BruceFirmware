@@ -116,6 +116,31 @@ void _setup_gpio() {
 #endif
 #endif
 
+#if defined(OPENCYD_CB)
+    // The bare panel only breaks the bus out on the SPI header, so which chip select each module
+    // lands on is a carrier decision. The stock 3.5" CS is GPIO35, which is input-only and can
+    // never assert one.
+    bruceConfigPins.rotation = 0;
+    bruceConfigPins.CC1101_bus = {
+        (gpio_num_t)18, (gpio_num_t)19, (gpio_num_t)23, (gpio_num_t)21, (gpio_num_t)22, (gpio_num_t)35
+    }; // sck,miso,mosi,cs,gdo0,gdo2
+    bruceConfigPins.NRF24_bus = {
+        (gpio_num_t)18, (gpio_num_t)19, (gpio_num_t)23, (gpio_num_t)26, (gpio_num_t)16
+    }; // sck,miso,mosi,cs(ss),ce
+    bruceConfigPins.PN532_bus = {(gpio_num_t)18, (gpio_num_t)19, (gpio_num_t)23, (gpio_num_t)17};
+#if !defined(LITE_VERSION)
+    bruceConfigPins.W5500_bus = {
+        (gpio_num_t)18, (gpio_num_t)19, (gpio_num_t)23, (gpio_num_t)21, (gpio_num_t)22, GPIO_NUM_NC
+    }; // sck,miso,mosi,cs,int,rst
+#endif
+    bruceConfigPins.rfModule = CC1101_SPI_MODULE;
+    bruceConfigPins.rfidModule = PN532_SPI_MODULE;
+    // The carrier wires the GPS straight through, TX to TX, so the module transmits into GPIO1 and
+    // UART2 has to listen there. GPIO1 is the quieter pad too: the USB bridge only listens on it,
+    // while it actively drives GPIO3. Nothing ever transmits to the module.
+    bruceConfigPins.gps_bus = {(gpio_num_t)1, GPIO_NUM_NC};
+#endif
+
 #ifndef HAS_CAPACITIVE_TOUCH // Capacitive Touchscreen uses I2C to communicate
     pinMode(XPT2046_CS, OUTPUT);
     digitalWrite(XPT2046_CS, HIGH);
