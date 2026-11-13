@@ -113,10 +113,14 @@ void cc1101SetPaMode(CC1101PaMode mode) {
 }
 
 // Amplified modules only present demodulated data on GDO2 and treat GDO0 as the data input, so
-// capturing on GDO0 there yields nothing.
+// capturing on GDO0 there yields nothing. Boards wire GDO2 for their own reasons, so only the
+// carrier redirects receive onto it.
 gpio_num_t cc1101RxPin() {
+#if defined(OPENCYD_CB)
     const gpio_num_t io2 = bruceConfigPins.CC1101_bus.io2;
-    return io2 != GPIO_NUM_NC ? io2 : bruceConfigPins.CC1101_bus.io0;
+    if (io2 != GPIO_NUM_NC) return io2;
+#endif
+    return bruceConfigPins.CC1101_bus.io0;
 }
 
 void cc1101WaitForIdle() {
