@@ -301,7 +301,9 @@ void ConfigMenu::pinsMenu() {
             {"CC1101 Pins",    [this]() { setSPIPinsMenu(bruceConfigPins.CC1101_bus); } },
             {"NRF24  Pins",    [this]() { setSPIPinsMenu(bruceConfigPins.NRF24_bus); }  },
             {"PN532 Pins",     [this]() { setSPIPinsMenu(bruceConfigPins.PN532_bus); }  },
+#if defined(OPENCYD_CB)
             {"CC1101 PA Pins", [this]() { setUARTPinsMenu(bruceConfigPins.cc1101_pa); } },
+#endif
 #if !defined(LITE_VERSION)
             {"LoRa Pins",      [this]() { setSPIPinsMenu(bruceConfigPins.LoRa_bus); }   },
             {"ST25R3916 Pins", [this]() { setSPIPinsMenu(bruceConfigPins.ST25R_bus); }  },
@@ -315,7 +317,7 @@ void ConfigMenu::pinsMenu() {
 #if defined(HAS_SPEAKER)
             {"Speaker Pins",   []() { setSpeakerPinsMenu(bruceConfigPins.speaker_bus); }},
 #else
-            {"Buzzer Pin", []() { setBuzzerPinMenu(); }},
+            {"Buzzer Pin",     []() { setBuzzerPinMenu(); }                             },
 #endif
 #if defined(HAS_MICROPHONE)
             {"Mic Pins",       []() { setMicPinsMenu(bruceConfigPins.mic_bus); }        },
