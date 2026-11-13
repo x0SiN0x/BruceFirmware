@@ -270,9 +270,11 @@ Also, [read our FAQ](https://wiki.bruce.computer/faq/)
 | [Elecrow 24B](https://www.elecrow.com/2-4inch-esp32-miner-lcd-display-2pcs-cryptocurrency-solo-miner-with-1000kh-s-hashrate.html)                                                            |  :ok:  | :ok:  |   :ok:   |         :ok:         | :x:  | :ok:¹  |   :x:   |   :x:   |    :x:     |     :x:²     |
 | [Elecrow 3.5"](https://www.elecrow.com/esp-terminal-with-esp32-3-5-inch-parallel-480x320-tft-capacitive-touch-display-rgb-by-chip-ili9488.html)                                                                                                                                                        |  :ok:  | :ok:  |   :ok:   |         :ok:         | :x:  | :ok:¹  |   :x:   |   :x:   |    :x:     |     :x:²     |
 | [NM-CYD-C5 + RF HAT](https://rockbase.shop/products/nm-cyd-c5-colorful)                                                                                                                         |  :ok:  | :ok:  |   :x:    | :ok: | :x:  |  :ok:  |  :ok:   |   :x:   |    :ok:    |     :x:      |
+| [OpenCYD-CB](https://github.com/x0SiN0x/OpenCYD-CB) (E32R35T / E32R40T carrier)                                                                                                                          | :ok:³ | :ok:  |   :x:    |         :ok:         | :x:  |  :x:   |   :x:   |   :x:   |    :x:     |     :x:      |
 | [Waveshare ESP32-C5-Touch-LCD-3.5](https://github.com/waveshareteam/ESP32-C5-Touch-LCD-3.5) |  :x:  | :x:  |   :x:    | :ok: | :ok: |  :x:   |  :x:   |  :ok:   |    :ok:    |     :x:      |
 ² CYD have a LITE_VERSION version for Launcher Compatibility
 ¹ Core, CYD and StickCs Bad-USB: [here](https://wiki.bruce.computer/features/others/#badusb)
+³ OpenCYD-CB drives the Ebyte E07 PA/LNA enable pins
 
 _LITE_VERSION_: TelNet, SSH, WireGuard, ScanHosts, RawSniffer, Brucegotchi, BLEBacon, BLEScan and Interpreter are NOT available for M5Launcher Compatibility
 
@@ -301,6 +303,7 @@ Other media can be [found here](./media/).
 - @pablonymous RF functions to read RAW Data
 - [Smoochiee](https://github.com/smoochiee) for Bruce PCB design.
 - TH3_KR4K3N for Stick cplus extender PCB design.
+- [@x0SiN0x](https://github.com/x0SiN0x) for the [OpenCYD Carrier Board](https://github.com/x0SiN0x/OpenCYD-CB).
 - Everyone who contributed in some way to the project, thanks :heart:
 
 Bruce also stands on the shoulders of other great open-source firmware projects,
