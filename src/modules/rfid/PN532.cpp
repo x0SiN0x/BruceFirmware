@@ -320,13 +320,23 @@ PN532::PN532(CONNECTION_TYPE connection_type) {
     _connection_type = connection_type;
     _use_i2c = (connection_type == I2C || connection_type == I2C_SPI);
     // I2C modes get their bus in begin(): it depends on where the PN532 answers.
-    if (!_use_i2c)
-        nfc.setInterface(
-            bruceConfigPins.PN532_bus.sck,
-            bruceConfigPins.PN532_bus.miso,
-            bruceConfigPins.PN532_bus.mosi,
-            bruceConfigPins.PN532_bus.cs
+    if (!_use_i2c) {
+        // Bit-banging the bus pinMode()s the pads back to plain GPIO, and the peripheral manager
+        // answers that by stopping the whole hardware SPI controller behind them, taking the SD
+        // card and any other radio on those pads down until the next reboot. Software SPI stays
+        // only for boards wiring the module to a third set of pins, where no controller is left.
+        SPIClass *spi = acquireSPIBus(
+            bruceConfigPins.PN532_bus.sck, bruceConfigPins.PN532_bus.miso, bruceConfigPins.PN532_bus.mosi
         );
+        if (spi) nfc = Adafruit_PN532(bruceConfigPins.PN532_bus.cs, spi);
+        else
+            nfc.setInterface(
+                bruceConfigPins.PN532_bus.sck,
+                bruceConfigPins.PN532_bus.miso,
+                bruceConfigPins.PN532_bus.mosi,
+                bruceConfigPins.PN532_bus.cs
+            );
+    }
 }
 
 bool PN532::begin() {
