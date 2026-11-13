@@ -402,13 +402,12 @@ bool PN532::begin() {
         delay(100 + i * 50);
         versiondata = nfc.getFirmwareVersion();
     }
-    PN532_DBG(
-        "[PN532] begin: versiondata=0x%08lX result=%d\n",
-        (unsigned long)versiondata,
-        (int)(i2c_check || versiondata)
-    );
+    // i2c_check is only meaningful in I2C mode; over SPI the version read is the sole evidence
+    // that a chip answered at all.
+    const bool found = _use_i2c ? (i2c_check || versiondata) : versiondata != 0;
+    PN532_DBG("[PN532] begin: versiondata=0x%08lX result=%d\n", (unsigned long)versiondata, (int)found);
 
-    return i2c_check || versiondata;
+    return found;
 }
 
 int PN532::read(int cardBaudRate) {
