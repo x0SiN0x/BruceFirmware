@@ -230,6 +230,8 @@ public:
     I2CPins i2c_bus = {(gpio_num_t)GROVE_SDA, (gpio_num_t)GROVE_SCL};
     UARTPins uart_bus;
     UARTPins gps_bus;
+    // TX_EN/RX_EN of an amplified CC1101 front-end (Ebyte E07 and alike)
+    UARTPins cc1101_pa;
     // BadUSB CH9329 UART (used on devices without native USB-OTG)
     UARTPins badusb_bus;
 

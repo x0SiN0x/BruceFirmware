@@ -133,6 +133,9 @@ void _setup_gpio() {
         (gpio_num_t)18, (gpio_num_t)19, (gpio_num_t)23, (gpio_num_t)21, (gpio_num_t)22, GPIO_NUM_NC
     }; // sck,miso,mosi,cs,int,rst
 #endif
+    // E07 PA/LNA enables. Only valid here: on a bare board GPIO4 is the audio amp enable and
+    // GPIO0 the boot strap.
+    bruceConfigPins.cc1101_pa = {(gpio_num_t)0, (gpio_num_t)4}; // rx_en, tx_en
     bruceConfigPins.rfModule = CC1101_SPI_MODULE;
     bruceConfigPins.rfidModule = PN532_SPI_MODULE;
     // The carrier wires the GPS straight through, TX to TX, so the module transmits into GPIO1 and

@@ -234,6 +234,13 @@ void BruceConfigPins::fromJson(JsonObject obj) {
         count++;
         log_e("Fail");
     }
+    if (!root["CC1101_PA"].isNull()) {
+        cc1101_pa.fromJson(root["CC1101_PA"].as<JsonObject>());
+    } else {
+        count++;
+        log_e("Fail");
+    }
+
     if (!root["GPS_bus"].isNull()) {
         gps_bus.fromJson(root["GPS_bus"].as<JsonObject>());
     } else {
@@ -317,6 +324,8 @@ void BruceConfigPins::toJson(JsonObject obj) const {
     uart_bus.toJson(_uart);
     JsonObject _gps = root["GPS_bus"].to<JsonObject>();
     gps_bus.toJson(_gps);
+    JsonObject _ccpa = root["CC1101_PA"].to<JsonObject>();
+    cc1101_pa.toJson(_ccpa);
     JsonObject _badusb = root["badusb_bus"].to<JsonObject>();
     badusb_bus.toJson(_badusb);
     JsonObject _spkr = root["speaker_bus"].to<JsonObject>();
@@ -439,6 +448,7 @@ void BruceConfigPins::validateConfig() {
     validateI2CPins(i2c_bus);
     validateUARTPins(uart_bus);
     validateUARTPins(gps_bus);
+    validateUARTPins(cc1101_pa);
     validateUARTPins(badusb_bus);
     validateSpeakerPins(speaker_bus);
     validateMicPins(mic_bus);
