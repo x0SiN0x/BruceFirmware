@@ -366,9 +366,32 @@ bool PN532::begin() {
     if (_use_i2c) i2c_check = i2cProbe(_i2cLease, PN532_I2C_ADDRESS);
     PN532_DBG("[PN532] begin: i2c_check=%d (addr 0x%02X)\n", (int)i2c_check, PN532_I2C_ADDRESS);
 
+    const int cs = bruceConfigPins.PN532_bus.cs;
+#if defined(OPENCYD_CB)
+    // The carrier is the only board that guarantees these share the bus. Anything left selected
+    // drives MISO through the probe below.
+    if (!_use_i2c && cs != GPIO_NUM_NC) {
+        for (gpio_num_t pin :
+             {bruceConfigPins.CC1101_bus.cs, bruceConfigPins.NRF24_bus.cs, bruceConfigPins.SDCARD_bus.cs}) {
+            if (pin == GPIO_NUM_NC || pin == (gpio_num_t)cs) continue;
+            pinMode(pin, OUTPUT);
+            digitalWrite(pin, HIGH);
+        }
+    }
+#endif
+
     nfc.begin();
 
     uint32_t versiondata = nfc.getFirmwareVersion();
+    // Over SPI the chip ignores the bus until CS is toggled, so a cold module reads back zeroes.
+    for (int i = 0; !versiondata && !_use_i2c && cs != GPIO_NUM_NC && i < 4; i++) {
+        pinMode(cs, OUTPUT);
+        digitalWrite(cs, LOW);
+        delay(10);
+        digitalWrite(cs, HIGH);
+        delay(100 + i * 50);
+        versiondata = nfc.getFirmwareVersion();
+    }
     PN532_DBG(
         "[PN532] begin: versiondata=0x%08lX result=%d\n",
         (unsigned long)versiondata,
