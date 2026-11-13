@@ -203,27 +203,6 @@ void _post_setup_gpio() {
     bruceConfig.colorInverted = 1;
     tft.invertDisplay(1);
 #endif
-
-    bruceConfigPins.gpsBaudrate = 9600;
-
-    bool pinsChanged = false;
-    if (bruceConfigPins.rfTx != 22) {
-        bruceConfigPins.rfTx = 22;
-        pinsChanged = true;
-    }
-    if (bruceConfigPins.rfRx != 27) {
-        bruceConfigPins.rfRx = 27;
-        pinsChanged = true;
-    }
-    if (bruceConfigPins.irTx != 22) {
-        bruceConfigPins.irTx = 22;
-        pinsChanged = true;
-    }
-    if (bruceConfigPins.irRx != 27) {
-        bruceConfigPins.irRx = 27;
-        pinsChanged = true;
-    }
-    if (pinsChanged) bruceConfigPins.saveFile();
 }
 
 /*********************************************************************
