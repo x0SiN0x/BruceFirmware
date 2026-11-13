@@ -240,6 +240,26 @@ void setup_gpio() {
     bool hasSysI2C = bruceConfigPins.sys_i2c.sda >= 0 && bruceConfigPins.sys_i2c.scl >= 0;
     ioExpander.init(IO_EXPANDER_ADDRESS, hasSysI2C ? getSysI2CBus() : &Wire);
 
+#if defined(OPENCYD_CB)
+    // The carrier populates all of these; other boards may reuse their default CS pins. Deselect
+    // them before the SD probe in begin_storage() clocks the bus. A CC1101 floating selected
+    // latches that traffic as register writes, and IOCFG1 can then leave it driving SO onto MISO
+    // while deselected - only SRES clears that.
+    for (gpio_num_t cs : {
+             bruceConfigPins.CC1101_bus.cs,
+             bruceConfigPins.NRF24_bus.cs,
+             bruceConfigPins.PN532_bus.cs,
+             bruceConfigPins.SDCARD_bus.cs,
+#if !defined(LITE_VERSION)
+             bruceConfigPins.LoRa_bus.cs
+#endif
+         }) {
+        if (cs == GPIO_NUM_NC || !GPIO_IS_VALID_OUTPUT_GPIO(cs)) continue;
+        gpio_set_level(cs, HIGH); // before pinMode, so the pad comes up high instead of glitching low
+        pinMode(cs, OUTPUT);
+        digitalWrite(cs, HIGH);
+    }
+#endif
     initCC1101once(acquireSPIBus(
         bruceConfigPins.CC1101_bus.sck, bruceConfigPins.CC1101_bus.miso, bruceConfigPins.CC1101_bus.mosi
     ));
