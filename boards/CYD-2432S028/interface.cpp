@@ -85,6 +85,10 @@ void _setup_gpio() {
 #if defined(ST7796_DRIVER)
     // CYD35_base variant (CYD-3248S035x)
     bruceConfigPins.rotation = 1;
+#if !defined(HAS_CAPACITIVE_TOUCH)
+    // I2C header, resistive panels only: on the 035C these two are the GT911 SCL and INT.
+    bruceConfigPins.i2c_bus = {(gpio_num_t)32, (gpio_num_t)25}; // sda, scl
+#endif
     bruceConfigPins.uart_bus = {(gpio_num_t)3, (gpio_num_t)1}; // rx, tx
     bruceConfigPins.gps_bus = {(gpio_num_t)3, (gpio_num_t)1};  // rx, tx
     bruceConfigPins.CC1101_bus = {
