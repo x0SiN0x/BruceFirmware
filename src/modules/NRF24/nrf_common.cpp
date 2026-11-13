@@ -50,6 +50,17 @@ bool nrf_start(NRF24_MODE mode) {
     digitalWrite(bruceConfigPins.NRF24_bus.cs, HIGH);
     pinMode(bruceConfigPins.NRF24_bus.io0, OUTPUT);
     digitalWrite(bruceConfigPins.NRF24_bus.io0, LOW);
+#if defined(OPENCYD_CB)
+    // Only the carrier guarantees these other peripherals are installed on the shared bus. Anything
+    // still selected drives MISO and the probe below reads garbage. The CC1101's CS is only raised
+    // when its own module is torn down.
+    for (gpio_num_t pin :
+         {bruceConfigPins.CC1101_bus.cs, bruceConfigPins.PN532_bus.cs, bruceConfigPins.SDCARD_bus.cs}) {
+        if (pin == GPIO_NUM_NC || pin == bruceConfigPins.NRF24_bus.cs) continue;
+        pinMode(pin, OUTPUT);
+        digitalWrite(pin, HIGH);
+    }
+#endif
     delay(5); // Let pins settle before SPI traffic
 
     NRFSPI =
@@ -60,15 +71,23 @@ bool nrf_start(NRF24_MODE mode) {
     }
     delay(10);
 
-    if (NRFradio.begin(
+    // Some modules need longer to answer than the 5ms begin() allows.
+    bool connected = false;
+    for (int i = 0; i < 4 && !connected; i++) {
+        if (i) delay(20 + i * 30);
+        connected = NRFradio.begin(
             NRFSPI,
             rf24_gpio_pin_t(bruceConfigPins.NRF24_bus.io0),
             rf24_gpio_pin_t(bruceConfigPins.NRF24_bus.cs)
-        )) {
-        result = true;
-    } else {
-        return false;
+        );
     }
+    if (!connected) return false;
+
+    // No reset pin, so registers survive an ESP32 reboot and setPALevel()/setDataRate() preserve
+    // CONT_WAVE/PLL_LOCK. stopConstCarrier() powers down on the way out, so power back up.
+    NRFradio.stopConstCarrier();
+    NRFradio.powerUp();
+    result = true;
     return result;
 }
 
