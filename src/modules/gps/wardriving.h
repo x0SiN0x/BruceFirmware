@@ -52,6 +52,7 @@ private:
     static constexpr size_t MAX_REGISTERED_MACS = 250;
 
     bool rxPinReleased = false;
+    bool consoleDetached = false;
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Setup

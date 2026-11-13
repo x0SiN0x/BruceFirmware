@@ -8,6 +8,8 @@
 QueueHandle_t cmdQueue = nullptr;
 QueueHandle_t rspQueue = nullptr;
 TaskHandle_t serialcmdsTaskHandle;
+static volatile bool serialCmdsPaused = false;
+static volatile bool serialCmdsIdle = false;
 
 struct CmdPacket {
     char text[512]; // command size
@@ -62,6 +64,12 @@ void handleSerialCommands(SerialCli &serialCli) {
 void _serialCmdsTaskLoop(void *pvParameters) {
     Serial.begin(115200);
     while (1) {
+        if (serialCmdsPaused) {
+            serialCmdsIdle = true;
+            vTaskDelay(pdMS_TO_TICKS(20));
+            continue;
+        }
+        serialCmdsIdle = false;
         handleSerialCommands(serialCli);
         // handleSerialCommands() runs one command per pass, so a burst queued by
         // the BLE app used to pay the full idle tick between each one. Still always
@@ -69,6 +77,19 @@ void _serialCmdsTaskLoop(void *pvParameters) {
         vTaskDelay(pdMS_TO_TICKS(serialDevice->available() ? 1 : 10));
     }
 }
+
+// Parks the task between commands so a caller can tear the port down without racing it. Suspending
+// it outright risks stopping it while it holds the uart lock, which then deadlocks Serial.end().
+// False means it never parked and the port is still in use.
+bool pauseSerialCommandsHandler() {
+    if (!serialcmdsTaskHandle) return true;
+    serialCmdsPaused = true;
+    // readStringUntil() can sit on its 1s stream timeout before the loop comes back around
+    for (int i = 0; i < 100 && !serialCmdsIdle; i++) vTaskDelay(pdMS_TO_TICKS(20));
+    return serialCmdsIdle;
+}
+
+void resumeSerialCommandsHandler() { serialCmdsPaused = false; }
 
 void startSerialCommandsHandlerTask(bool initQueues) {
     if (initQueues) {

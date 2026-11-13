@@ -10,6 +10,7 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
+#include "core/utils.h"
 #include "core/wifi/wifi_common.h"
 #include "current_year.h"
 #include "modules/ble/ble_common.h"
@@ -77,6 +78,7 @@ void Wardriving::begin_wifi() {
 bool Wardriving::begin_gps() {
     releasePins();
     pinMode(bruceConfigPins.gps_bus.rx, INPUT);
+    GPSserial.setRxBufferSize(1024); // the default 256 truncates sentences across a screen redraw
     GPSserial.begin(
         bruceConfigPins.gpsBaudrate, SERIAL_8N1, bruceConfigPins.gps_bus.rx, bruceConfigPins.gps_bus.tx
     );
@@ -494,6 +496,7 @@ void Wardriving::create_filename() {
 }
 
 void Wardriving::releasePins() {
+    consoleDetached = gpsDetachConsole();
     rxPinReleased = false;
     if (bruceConfigPins.CC1101_bus.checkConflict(bruceConfigPins.gps_bus.rx) ||
         bruceConfigPins.NRF24_bus.checkConflict(bruceConfigPins.gps_bus.rx) ||
@@ -528,6 +531,8 @@ void Wardriving::checkForAlert(const String &macAddress, const String &deviceTyp
 }
 
 void Wardriving::restorePins() {
+    gpsRestoreConsole(consoleDetached);
+    consoleDetached = false;
     if (rxPinReleased) {
         if (bruceConfigPins.CC1101_bus.checkConflict(bruceConfigPins.gps_bus.rx) ||
             bruceConfigPins.NRF24_bus.checkConflict(bruceConfigPins.gps_bus.rx) ||

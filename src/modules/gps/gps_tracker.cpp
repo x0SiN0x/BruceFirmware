@@ -10,6 +10,7 @@
 #include "core/display.h"
 #include "core/mykeyboard.h"
 #include "core/sd_functions.h"
+#include "core/utils.h"
 #include "current_year.h"
 
 #define MAX_WAIT 5000
@@ -41,6 +42,7 @@ void GPSTracker::setup() {
 bool GPSTracker::begin_gps() {
     releasePins();
     pinMode(bruceConfigPins.gps_bus.rx, INPUT);
+    GPSserial.setRxBufferSize(1024); // the default 256 truncates sentences across a screen redraw
     GPSserial.begin(
         bruceConfigPins.gpsBaudrate, SERIAL_8N1, bruceConfigPins.gps_bus.rx, bruceConfigPins.gps_bus.tx
     );
@@ -240,6 +242,7 @@ void GPSTracker::add_coord() {
 }
 
 void GPSTracker::releasePins() {
+    consoleDetached = gpsDetachConsole();
     rxPinReleased = false;
     if (bruceConfigPins.CC1101_bus.checkConflict(bruceConfigPins.gps_bus.rx) ||
         bruceConfigPins.NRF24_bus.checkConflict(bruceConfigPins.gps_bus.rx) ||
@@ -256,6 +259,8 @@ void GPSTracker::releasePins() {
 }
 
 void GPSTracker::restorePins() {
+    gpsRestoreConsole(consoleDetached);
+    consoleDetached = false;
     if (rxPinReleased) {
         if (bruceConfigPins.CC1101_bus.checkConflict(bruceConfigPins.gps_bus.rx) ||
             bruceConfigPins.NRF24_bus.checkConflict(bruceConfigPins.gps_bus.rx) ||
