@@ -300,6 +300,12 @@ bool initRfModule(String mode, float frequency) {
             Serial.println("cc1101 Connection Error");
             return false;
         }
+        // checkMISO() is compiled out on IDF 5, so Init() writes straight after SRES without waiting for
+        // the chip to come ready. The first writes can be dropped, leaving IOCFG2 at its reset value and
+        // GDO2 with no receive data.
+        cc1101WaitForIdle();
+        ELECHOUSE_cc1101.SpiWriteReg(CC1101_FSCTRL1, 0x06);
+        ELECHOUSE_cc1101.setCCMode(0);
 
         // make sure it is in idle state when changing frequency and other parameters
         // "If any frequency programming register is altered when the frequency synthesizer is running, the
