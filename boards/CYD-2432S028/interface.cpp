@@ -136,6 +136,8 @@ void _setup_gpio() {
         (gpio_num_t)18, (gpio_num_t)19, (gpio_num_t)23, (gpio_num_t)26, (gpio_num_t)16
     }; // sck,miso,mosi,cs(ss),ce
     bruceConfigPins.PN532_bus = {(gpio_num_t)18, (gpio_num_t)19, (gpio_num_t)23, (gpio_num_t)17};
+    // An ST25R3916 can take the PN532 socket. With no IRQ pin set the driver polls.
+    bruceConfigPins.ST25R_bus = {(gpio_num_t)18, (gpio_num_t)19, (gpio_num_t)23, (gpio_num_t)17};
 #if !defined(LITE_VERSION)
     bruceConfigPins.W5500_bus = {
         (gpio_num_t)18, (gpio_num_t)19, (gpio_num_t)23, (gpio_num_t)21, (gpio_num_t)22, GPIO_NUM_NC
